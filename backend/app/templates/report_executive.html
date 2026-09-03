@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="_base.css">
+</head>
+<body>
+  <div class="header">
+    <h1>SGCM — Reporte Ejecutivo de Ciberseguridad</h1>
+    <div class="meta">
+      Generado: {{ generated_at.strftime("%d/%m/%Y %H:%M") }} UTC<br>
+      {% if filters_description %}Filtros: {{ filters_description }}{% else %}Sin filtros aplicados{% endif %}
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="value">{{ total_assets }}</div>
+      <div class="label">Activos registrados</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">{{ critical_or_high_vulnerabilities }}</div>
+      <div class="label">Vulnerabilidades alto/crítico</div>
+    </div>
+    <div class="kpi-card">
+      <div class="value">{{ nist_global_maturity_percent if nist_global_maturity_percent is not none else "N/D" }}{% if nist_global_maturity_percent is not none %}%{% endif %}</div>
+      <div class="label">Madurez NIST global</div>
+    </div>
+  </div>
+
+  <h2>Vulnerabilidades por nivel de riesgo</h2>
+  <table>
+    <thead><tr><th>Nivel</th><th>Cantidad</th></tr></thead>
+    <tbody>
+      {% for row in vulnerabilities_by_risk_band %}
+      <tr><td><span class="badge badge-{{ row.risk_band }}">{{ row.risk_band }}</span></td><td>{{ row.count }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Top 5 activos con mayor riesgo</h2>
+  <table>
+    <thead><tr><th>Activo</th><th>Criticidad</th><th>Riesgo</th><th>Puntaje</th></tr></thead>
+    <tbody>
+      {% for asset in top_risky_assets %}
+      <tr>
+        <td>{{ asset.name }}</td>
+        <td>{{ asset.criticality }}</td>
+        <td><span class="badge badge-{{ asset.risk_band }}">{{ asset.risk_band }}</span></td>
+        <td>{{ asset.risk_score }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Madurez NIST CSF por función</h2>
+  <table>
+    <thead><tr><th>Función</th><th>Madurez</th></tr></thead>
+    <tbody>
+      {% for point in nist_functions %}
+      <tr><td>{{ point.function }}</td><td>{{ point.maturity_percent if point.maturity_percent is not none else "N/D" }}{% if point.maturity_percent is not none %}%{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="footer-note">
+    SGCM — Sistema de Gestión de Ciberseguridad Municipal. Prototipo / MVP con datos de demostración.
+  </p>
+</body>
+</html>

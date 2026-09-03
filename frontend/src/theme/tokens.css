@@ -1,0 +1,21 @@
+/*
+  Paleta institucional real de Muniguate: azul marino + verde (del escudo/sitio).
+*/
+:root {
+  --color-primary: #17176b;
+  --color-primary-dark: #0e0e45;
+  --color-accent: #6fa83a;
+
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-text: #1a1f2b;
+  --color-text-muted: #5b6472;
+  --color-border: #e2e5ea;
+
+  --color-risk-bajo: #22c55e;
+  --color-risk-medio: #eab308;
+  --color-risk-alto: #f97316;
+  --color-risk-critico: #dc2626;
+
+  --font-sans: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+}

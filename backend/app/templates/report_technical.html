@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="_base.css">
+</head>
+<body>
+  <div class="header">
+    <h1>SGCM — Reporte Técnico</h1>
+    <div class="meta">
+      Generado: {{ generated_at.strftime("%d/%m/%Y %H:%M") }} UTC<br>
+      {% if filters_description %}Filtros: {{ filters_description }}{% else %}Sin filtros aplicados{% endif %}
+    </div>
+  </div>
+
+  {% for asset in assets %}
+  <h2>{{ asset.name }} <span class="badge {{ 'badge-' + asset.risk_band if asset.risk_band else 'badge-neutral' }}">{{ asset.risk_band or "sin riesgo" }}</span></h2>
+  <p style="font-size:9pt;color:#5b6472;margin:0 0 6px 0;">
+    Tipo: {{ asset.type }} · Dependencia: {{ asset.department }} · Criticidad: {{ asset.criticality }} · Estado: {{ asset.status }}
+  </p>
+
+  {% if asset.vulnerabilities %}
+  <table>
+    <thead><tr><th>Vulnerabilidad</th><th>Prob.</th><th>Impacto</th><th>Riesgo</th><th>Estado</th><th>Recomendaciones</th></tr></thead>
+    <tbody>
+      {% for v in asset.vulnerabilities %}
+      <tr>
+        <td>{{ v.description }}</td>
+        <td>{{ v.probability }}</td>
+        <td>{{ v.impact }}</td>
+        <td><span class="badge badge-{{ v.risk_band }}">{{ v.risk_band }}</span> ({{ v.risk_score }})</td>
+        <td>{{ v.status }}</td>
+        <td>
+          {% if v.recommendations %}
+            <ul style="margin:0;padding-left:14px;">
+            {% for r in v.recommendations %}
+              <li>{{ r.text }}</li>
+            {% endfor %}
+            </ul>
+          {% else %}
+            —
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size:9pt;color:#5b6472;">Sin vulnerabilidades registradas.</p>
+  {% endif %}
+  {% endfor %}
+
+  <p class="footer-note">
+    SGCM — Sistema de Gestión de Ciberseguridad Municipal. Prototipo / MVP con datos de demostración.
+  </p>
+</body>
+</html>

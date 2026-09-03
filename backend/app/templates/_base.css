@@ -1,0 +1,109 @@
+@page {
+    size: letter;
+    margin: 1.8cm;
+    @bottom-right {
+        content: "Página " counter(page) " de " counter(pages);
+        font-size: 8pt;
+        color: #5b6472;
+    }
+}
+
+body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    color: #1a1f2b;
+    font-size: 10.5pt;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 3px solid #1b4f91;
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+}
+
+.header h1 {
+    color: #1b4f91;
+    font-size: 18pt;
+    margin: 0;
+}
+
+.header .meta {
+    font-size: 9pt;
+    color: #5b6472;
+    text-align: right;
+}
+
+h2 {
+    color: #1b4f91;
+    font-size: 13pt;
+    margin-top: 22px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e2e5ea;
+    padding-bottom: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+}
+
+th, td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e2e5ea;
+    font-size: 9.5pt;
+}
+
+th {
+    background-color: #f7f8fa;
+    color: #1a1f2b;
+    font-weight: 600;
+}
+
+.kpi-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.kpi-card {
+    flex: 1;
+    border: 1px solid #e2e5ea;
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.kpi-card .value {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1b4f91;
+}
+
+.kpi-card .label {
+    font-size: 8.5pt;
+    color: #5b6472;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.badge-bajo { background-color: #22c55e; }
+.badge-medio { background-color: #eab308; color: #1a1f2b; }
+.badge-alto { background-color: #f97316; }
+.badge-critico { background-color: #dc2626; }
+.badge-neutral { background-color: #94a3b8; }
+
+.footer-note {
+    margin-top: 24px;
+    font-size: 8pt;
+    color: #5b6472;
+}
