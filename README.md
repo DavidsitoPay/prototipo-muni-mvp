@@ -1,4 +1,4 @@
-# SGCM — Sistema de Gestión de Ciberseguridad Municipal
+# Muniguate — Sistema de Gestión de Ciberseguridad Municipal (SGCM)
 
 MVP/prototipo local. Ver [`SDD-sgcm-mvp.md`](./SDD-sgcm-mvp.md) para la especificación funcional completa.
 
@@ -30,7 +30,7 @@ El primer arranque aplica las migraciones de Alembic y siembra datos de demo aut
 
 ## Credenciales de demo (autenticación simulada)
 
-> ⚠️ Autenticación simulada para el prototipo — usuarios y contraseñas fijos, sin proveedor de identidad real. No usar en producción.
+> ⚠️ "Simulada" se refiere a **quiénes** son los usuarios, no a **cómo** se autentican: no hay proveedor de identidad externo (SSO/LDAP/OAuth) ni registro de usuarios nuevos — solo 3 cuentas fijas sembradas en la base de datos. El mecanismo de login sí es real: contraseñas con hash `bcrypt` (`passlib`) y sesión vía JWT firmado (`python-jose`, `JWT_SECRET`/`JWT_EXPIRE_MINUTES`). No usar estas credenciales ni este `JWT_SECRET` de ejemplo en producción.
 
 | Usuario | Contraseña | Rol |
 |---|---|---|
@@ -50,4 +50,4 @@ y setear `LLM_ENABLED=true` en `.env`.
 
 ## Identidad visual
 
-La paleta de colores es una aproximación institucional (azul + dorado), ya que no fue posible obtener los assets oficiales exactos de muniguate.com durante el desarrollo (el sitio bloquea scraping). Los valores viven en `frontend/src/theme/tokens.css` y son el único lugar a tocar si se consiguen los assets reales.
+Paleta institucional real de Muniguate (azul marino + verde, tomados del escudo municipal) en `frontend/src/theme/tokens.css`, y el escudo oficial en `frontend/public/logo.webp` (usado en header, login y favicon).
