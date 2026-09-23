@@ -39,8 +39,11 @@ export default function RiesgosPage() {
       <Card>
         <div className="flex flex-wrap gap-3 items-end mb-4">
           <div>
-            <label className="block text-xs font-medium mb-1">Nivel de riesgo</label>
+            <label htmlFor="riesgos-filter-band" className="block text-xs font-medium mb-1">
+              Nivel de riesgo
+            </label>
             <select
+              id="riesgos-filter-band"
               value={filters.risk_band ?? ""}
               onChange={(e) => setFilters({ ...filters, risk_band: (e.target.value || undefined) as RiskBand })}
               className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm"
@@ -54,8 +57,11 @@ export default function RiesgosPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1">Estado</label>
+            <label htmlFor="riesgos-filter-status" className="block text-xs font-medium mb-1">
+              Estado
+            </label>
             <select
+              id="riesgos-filter-status"
               value={filters.status_ ?? ""}
               onChange={(e) =>
                 setFilters({ ...filters, status_: (e.target.value || undefined) as VulnerabilityStatus })

@@ -61,8 +61,16 @@ jobs:
         working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
-          PYTHONPATH: .python_packages/lib/site-packages
-        run: python -c "from alembic.config import main; main(argv=['upgrade', 'head'])"
+        run: |
+          python -c "
+          import sys
+          # Insert site-packages BEFORE the CWD entry python -c adds automatically,
+          # otherwise 'import alembic' resolves to our own backend/alembic/
+          # migrations folder (no config.py there) instead of the real library.
+          sys.path.insert(0, '.python_packages/lib/site-packages')
+          from alembic.config import main
+          main(argv=['upgrade', 'head'])
+          "
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1

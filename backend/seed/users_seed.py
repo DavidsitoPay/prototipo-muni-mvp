@@ -3,22 +3,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User, UserRole
 from app.services.auth_service import hash_password
 
+# Contraseña de demo publica, documentada en CREDENTIALS.md - no es un secreto real.
+_DEMO_PASSWORD = "Demo123!"  # NOSONAR
+
 DEMO_USERS = [
     {
         "username": "admin.ti",
-        "password": "Demo123!",
+        "password": _DEMO_PASSWORD,
         "role": UserRole.admin_ti,
         "display_name": "Ana TI (Administradora TI)",
     },
     {
         "username": "analista.riesgo",
-        "password": "Demo123!",
+        "password": _DEMO_PASSWORD,
         "role": UserRole.analista_riesgo,
         "display_name": "Carlos Ríos (Analista de Riesgo)",
     },
     {
         "username": "directivo",
-        "password": "Demo123!",
+        "password": _DEMO_PASSWORD,
         "role": UserRole.directivo,
         "display_name": "Lic. Morales (Directivo)",
     },
