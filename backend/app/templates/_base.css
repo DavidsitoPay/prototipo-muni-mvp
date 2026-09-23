@@ -1,11 +1,15 @@
 @page {
     size: letter;
     margin: 1.8cm;
-    @bottom-right {
-        content: "Página " counter(page) " de " counter(pages);
-        font-size: 8pt;
-        color: #5b6472;
-    }
+    -pdf-frame-content: footerContent;
+    -pdf-frame-border-width: 0;
+    -pdf-frame-margin-top: 1.5cm;
+}
+
+#footerContent {
+    text-align: right;
+    font-size: 8pt;
+    color: #5b6472;
 }
 
 body {
@@ -14,13 +18,17 @@ body {
     font-size: 10.5pt;
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+table.header {
+    width: 100%;
     border-bottom: 3px solid #1b4f91;
     padding-bottom: 8px;
     margin-bottom: 18px;
+}
+
+.header td {
+    border-bottom: none;
+    padding: 0;
+    vertical-align: bottom;
 }
 
 .header h1 {
@@ -63,14 +71,18 @@ th {
     font-weight: 600;
 }
 
-.kpi-row {
-    display: flex;
-    gap: 12px;
+table.kpi-row {
+    width: 100%;
+    border-spacing: 12px 0;
     margin-bottom: 18px;
 }
 
+.kpi-row td {
+    border-bottom: none;
+}
+
 .kpi-card {
-    flex: 1;
+    width: 33%;
     border: 1px solid #e2e5ea;
     border-radius: 8px;
     padding: 10px 14px;

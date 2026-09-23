@@ -1,5 +1,6 @@
 # Env
 .env
+CREDENTIALS.md
 
 # Python
 __pycache__/
@@ -13,7 +14,15 @@ node_modules/
 dist/
 frontend/dist/
 
-# Docker/OS
+# Azure Functions (local dev)
+backend/local.settings.json
+backend/.python_packages/
+backend/.azure/
+
+# Vercel
+.vercel/
+
+# OS
 .DS_Store
 Thumbs.db
 

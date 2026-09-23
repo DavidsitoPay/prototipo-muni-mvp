@@ -1,49 +1,75 @@
-name: Deploy Python project to Azure Function App
+name: Build and deploy Python project to Azure Function App - muniguate-api
 
 on:
-  [push]
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
 
-# CONFIGURATION
-# For help, go to https://github.com/Azure/Actions
-#
-# 1. Set up the following secrets in your repository:
-#   AZURE_FUNCTIONAPP_PUBLISH_PROFILE_2e7f59fab24f4fa7960a5e6c1ee3a7a3
-#
-# 2. Change these variables for your configuration:
 env:
-  AZURE_FUNCTIONAPP_NAME: 'your-app-name'   # set this to your function app name on Azure
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'       # set this to the path to your function app project, defaults to the repository root
-  PYTHON_VERSION: '3.9'                     # set this to the python version to use (e.g. '3.6', '3.7', '3.8')
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'backend'
+  PYTHON_VERSION: '3.12'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    environment: dev
     steps:
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Setup Python ${{ env.PYTHON_VERSION }} environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: 'Resolve Project Dependencies Using Pip'
-      shell: bash
-      run: |
-        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt --target=".python_packages/lib/site-packages"
-        popd
+      - name: Resolve project dependencies using pip
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          popd
 
-    - name: 'Run Azure Functions Action'
-      uses: Azure/functions-action@v1
-      id: fa
-      with:
-        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_2e7f59fab24f4fa7960a5e6c1ee3a7a3 }}
-        scm-do-build-during-deployment: true
-        enable-oryx-build: true
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: |
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/tests
+            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.venv
 
-# For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }} environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run database migrations (Neon production)
+        shell: bash
+        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          PYTHONPATH: .python_packages/lib/site-packages
+        run: python -m alembic upgrade head
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        id: deploy-to-function
+        with:
+          app-name: 'muniguate-api'
+          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true

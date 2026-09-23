@@ -2,12 +2,6 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
-const DEMO_USERS = [
-  { username: "admin.ti", label: "Administrador TI" },
-  { username: "analista.riesgo", label: "Analista de Riesgo" },
-  { username: "directivo", label: "Directivo / Lectura" },
-];
-
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -84,29 +78,6 @@ export default function LoginPage() {
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
-
-        <div className="mt-6 bg-white border border-[var(--color-border)] rounded-lg p-4 text-xs text-[var(--color-text-muted)]">
-          <p className="font-medium text-[var(--color-text)] mb-2">
-            Credenciales de demostración (autenticación simulada):
-          </p>
-          <ul className="space-y-1">
-            {DEMO_USERS.map((u) => (
-              <li key={u.username}>
-                <button
-                  type="button"
-                  className="underline decoration-dotted hover:text-primary"
-                  onClick={() => {
-                    setUsername(u.username);
-                    setPassword("Demo123!");
-                  }}
-                >
-                  {u.username}
-                </button>{" "}
-                / <code>Demo123!</code> — {u.label}
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
     </div>
   );
