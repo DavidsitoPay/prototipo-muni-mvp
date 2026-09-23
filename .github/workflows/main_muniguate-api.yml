@@ -36,6 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-app
+          include-hidden-files: true
           path: |
             ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
             !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/tests
@@ -56,6 +57,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install migration dependencies
+        shell: bash
+        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        run: python -m pip install --quiet -r requirements.txt
+
       - name: Run database migrations (Neon production)
         shell: bash
         working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
@@ -63,12 +69,15 @@ jobs:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: |
           python -c "
-          import sys
-          # Insert site-packages BEFORE the CWD entry python -c adds automatically,
-          # otherwise 'import alembic' resolves to our own backend/alembic/
-          # migrations folder (no config.py there) instead of the real library.
-          sys.path.insert(0, '.python_packages/lib/site-packages')
+          import sys, os
+          # python -c always inserts the CWD ('backend/') as sys.path[0]. That
+          # directory contains our own alembic/ migrations folder (no config.py
+          # in it), which shadows the real installed alembic library. Drop the
+          # auto-inserted CWD entry before importing, then restore it afterwards
+          # so alembic/env.py's 'from app...' imports still resolve.
+          sys.path = [p for p in sys.path if p not in ('', '.')]
           from alembic.config import main
+          sys.path.append(os.getcwd())
           main(argv=['upgrade', 'head'])
           "
 
