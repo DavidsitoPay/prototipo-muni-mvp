@@ -62,7 +62,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
           PYTHONPATH: .python_packages/lib/site-packages
-        run: python -m alembic upgrade head
+        run: python -c "from alembic.config import main; main(argv=['upgrade', 'head'])"
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
