@@ -2,16 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="_base.css">
+  <style>{{ base_css | safe }}</style>
 </head>
 <body>
-  <div class="header">
-    <h1>SGCM — Reporte Técnico</h1>
-    <div class="meta">
+  <div id="footerContent">Página <pdf:pagenumber /> de <pdf:pagecount /></div>
+  <table class="header"><tr>
+    <td class="header-title"><h1>SGCM — Reporte Técnico</h1></td>
+    <td class="meta">
       Generado: {{ generated_at.strftime("%d/%m/%Y %H:%M") }} UTC<br>
       {% if filters_description %}Filtros: {{ filters_description }}{% else %}Sin filtros aplicados{% endif %}
-    </div>
-  </div>
+    </td>
+  </tr></table>
 
   {% for asset in assets %}
   <h2>{{ asset.name }} <span class="badge {{ 'badge-' + asset.risk_band if asset.risk_band else 'badge-neutral' }}">{{ asset.risk_band or "sin riesgo" }}</span></h2>

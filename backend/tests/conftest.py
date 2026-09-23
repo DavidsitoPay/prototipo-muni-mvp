@@ -20,7 +20,11 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """Fresh engine + NullPool per test: pytest-asyncio gives each test
     function its own event loop, and asyncpg connections cannot be reused
     across loops. NullPool guarantees no connection outlives this test."""
-    test_engine = create_async_engine(settings.database_url, poolclass=NullPool)
+    test_engine = create_async_engine(
+        settings.database_url,
+        poolclass=NullPool,
+        connect_args={"ssl": "require", "statement_cache_size": 0},
+    )
     session_factory = async_sessionmaker(bind=test_engine, expire_on_commit=False)
     async with session_factory() as session:
         yield session

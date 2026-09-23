@@ -2,31 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="_base.css">
+  <style>{{ base_css | safe }}</style>
 </head>
 <body>
-  <div class="header">
-    <h1>SGCM — Reporte Ejecutivo de Ciberseguridad</h1>
-    <div class="meta">
+  <div id="footerContent">Página <pdf:pagenumber /> de <pdf:pagecount /></div>
+  <table class="header"><tr>
+    <td class="header-title"><h1>SGCM — Reporte Ejecutivo de Ciberseguridad</h1></td>
+    <td class="meta">
       Generado: {{ generated_at.strftime("%d/%m/%Y %H:%M") }} UTC<br>
       {% if filters_description %}Filtros: {{ filters_description }}{% else %}Sin filtros aplicados{% endif %}
-    </div>
-  </div>
+    </td>
+  </tr></table>
 
-  <div class="kpi-row">
-    <div class="kpi-card">
+  <table class="kpi-row"><tr>
+    <td class="kpi-card">
       <div class="value">{{ total_assets }}</div>
       <div class="label">Activos registrados</div>
-    </div>
-    <div class="kpi-card">
+    </td>
+    <td class="kpi-card">
       <div class="value">{{ critical_or_high_vulnerabilities }}</div>
       <div class="label">Vulnerabilidades alto/crítico</div>
-    </div>
-    <div class="kpi-card">
+    </td>
+    <td class="kpi-card">
       <div class="value">{{ nist_global_maturity_percent if nist_global_maturity_percent is not none else "N/D" }}{% if nist_global_maturity_percent is not none %}%{% endif %}</div>
       <div class="label">Madurez NIST global</div>
-    </div>
-  </div>
+    </td>
+  </tr></table>
 
   <h2>Vulnerabilidades por nivel de riesgo</h2>
   <table>
