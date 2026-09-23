@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 480
 
     llm_enabled: bool = False
-    ollama_host: str = "http://localhost:11434"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.6-flash"
 
     cors_origins: str = "http://localhost:3000"
 
