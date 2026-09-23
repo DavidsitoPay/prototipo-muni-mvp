@@ -29,17 +29,26 @@ jobs:
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           python -m pip install --upgrade pip
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          pip install --only-binary :all: -r requirements.txt --target=".python_packages/lib/site-packages"
           popd
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: python-app
+          include-hidden-files: true
+          # Allowlist only what the deploy/migration jobs actually need - never a
+          # blanket dump of the working directory, so no credential file (.env,
+          # local.settings.json - both gitignored and never checked out by CI
+          # anyway) can end up in the artifact even by accident.
           path: |
-            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/tests
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.venv
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/app
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/alembic
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/alembic.ini
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/function_app.py
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/host.json
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/requirements.txt
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.python_packages
 
   deploy:
     runs-on: ubuntu-latest
@@ -56,6 +65,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install migration dependencies
+        shell: bash
+        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        run: |
+          python -m pip install --quiet --only-binary :all: -r requirements.txt
+
       - name: Run database migrations (Neon production)
         shell: bash
         working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
@@ -63,12 +78,15 @@ jobs:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: |
           python -c "
-          import sys
-          # Insert site-packages BEFORE the CWD entry python -c adds automatically,
-          # otherwise 'import alembic' resolves to our own backend/alembic/
-          # migrations folder (no config.py there) instead of the real library.
-          sys.path.insert(0, '.python_packages/lib/site-packages')
+          import sys, os
+          # python -c always inserts the CWD ('backend/') as sys.path[0]. That
+          # directory contains our own alembic/ migrations folder (no config.py
+          # in it), which shadows the real installed alembic library. Drop the
+          # auto-inserted CWD entry before importing, then restore it afterwards
+          # so alembic/env.py's 'from app...' imports still resolve.
+          sys.path = [p for p in sys.path if p not in ('', '.')]
           from alembic.config import main
+          sys.path.append(os.getcwd())
           main(argv=['upgrade', 'head'])
           "
 
