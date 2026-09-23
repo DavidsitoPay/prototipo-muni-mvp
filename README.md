@@ -41,10 +41,27 @@ npm run dev
 
 ## Despliegue
 
-- **Neon**: crear un proyecto y (recomendado) una branch `development` separada de `production`. Usar el endpoint directo (no el pooled) en `DATABASE_URL`; correr `alembic upgrade head` y el seed una sola vez contra la branch de producción antes del primer despliegue.
-- **Backend (Azure Functions)**: `func azure functionapp publish <nombre-function-app>` desde `backend/`. Configurar `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRE_MINUTES`, `LLM_ENABLED`, `OLLAMA_HOST`, `CORS_ORIGINS` como Application Settings de la Function App (nunca en el repo).
-- **Frontend (Vercel)**: importar el repo, root directory `frontend/`, y setear `VITE_API_BASE_URL` apuntando a la URL pública de la Function App + `/api`. `frontend/vercel.json` ya incluye el rewrite SPA para React Router.
-- `CORS_ORIGINS` en el backend debe incluir el dominio de producción de Vercel. Los preview deployments de Vercel (URLs dinámicas por rama) no van a pasar CORS a menos que se agreguen explícitamente.
+URLs de producción:
+
+- Frontend: <https://muniguate.vercel.app>
+- Backend API: <https://muniguate-api.azurewebsites.net/api>
+
+Los despliegues a `main` son automáticos:
+
+- **Frontend (Vercel)**: proyecto conectado vía Git integration (Root Directory `frontend/`, rama de producción `main`). Un push a `main` que toque `frontend/` hace build y deploy solo.
+- **Backend (Azure Functions)**: workflow de GitHub Actions [`.github/workflows/main_muniguate-api.yml`](./.github/workflows/main_muniguate-api.yml). Un push a `main` que toque `backend/` corre `alembic upgrade head` contra Neon producción y luego despliega la Function App. También se puede disparar a mano desde GitHub → pestaña Actions → "Run workflow". Requiere dos secrets configurados en el repo (Settings → Secrets and variables → Actions):
+  - `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`: perfil de publicación de la Function App (`az functionapp deployment list-publishing-profiles --name muniguate-api --resource-group rg-muniguate --xml`). Si el deploy falla con `401 Unauthorized` en `ValidateAzureResource`, revisar que "Basic Auth Publishing Credentials (SCM)" esté habilitado en la Function App y regenerar este secret (el password rota cuando se cambia esa política).
+  - `NEON_DATABASE_URL`: endpoint directo (no pooled) de la branch `production` de Neon.
+
+### Setup inicial de infraestructura (ya hecho para este proyecto; referencia si hay que recrear algo)
+
+- **Neon**: proyecto `muniguate` con branches `production` y `development` (endpoint directo, no pooled, en `DATABASE_URL`).
+- **Azure**: resource group `rg-muniguate` (eastus2 — la región depende de qué regiones permita la suscripción), storage account, Function App `muniguate-api` (Python 3.12, Linux, plan Consumption — **no usar 3.13**, el host de Functions falla en arrancar con esa versión). `host.json` tiene `"routePrefix": ""` porque cada ruta de FastAPI ya trae su propio `/api`; sin esto el host de Azure Functions duplica el prefijo y no levanta. El CORS de Azure Functions es una config de plataforma **separada** de la de FastAPI — hay que configurar los dos (`az functionapp cors add` además de `CORS_ORIGINS`).
+- **Vercel**: proyecto con Root Directory `frontend/`, `VITE_API_BASE_URL` apuntando a la Function App + `/api`, dominio corto asignado vía `vercel alias set`.
+
+### Calidad de código
+
+SonarCloud analiza cada PR (`sonarcloud.io/project/issues?id=DavidsitoPay_prototipo-muni-mvp`). Los hallazgos de estilo puro en `backend/seed/` y componentes React (props read-only, `response_model` redundante) quedaron pendientes deliberadamente — bajo impacto para un MVP universitario.
 
 ## Roles y permisos
 
@@ -62,7 +79,11 @@ Las credenciales de las 3 cuentas demo (`admin.ti`, `analista.riesgo`, `directiv
 
 ## Motor de recomendaciones
 
-El motor de reglas (catálogo local, sin dependencias externas) está siempre activo. El enriquecimiento opcional vía LLM local (Ollama) está apagado por defecto; para habilitarlo, correr Ollama localmente y setear `LLM_ENABLED=true` en `backend/.env` (no aplica en el despliegue serverless de Azure Functions, pensado solo para desarrollo local).
+El motor de reglas (catálogo local, sin dependencias externas) está siempre activo y es la única fuente garantizada de recomendación. El enriquecimiento opcional vía LLM en la nube (**Google Gemini, capa gratuita**) está **habilitado en producción**: cada vulnerabilidad o función NIST que dispara una recomendación de regla genera **además** una segunda fila `Recommendation` con `source=llm` — un párrafo más natural, redactado para un directivo no técnico — sin reemplazar nunca la de reglas. Si Gemini no responde, tarda más de 12s, o no hay `GEMINI_API_KEY` configurado, se degrada en silencio y solo queda la de reglas.
+
+En el frontend, la recomendación de IA aparece marcada con **"(enriquecido por IA)"** junto al texto (ver "Ver recomendaciones" en cada vulnerabilidad).
+
+Para habilitarlo (o probarlo local): obtener un API key gratis en <https://aistudio.google.com/apikey> (no pide tarjeta), y setear `LLM_ENABLED=true` + `GEMINI_API_KEY=...` en `backend/.env` (local) o como Application Settings de la Function App (producción). El modelo (`GEMINI_MODEL`, default `gemini-3.6-flash`) corre con `thinkingBudget: 0` para no gastar cuota gratis en modo de razonamiento — esto es solo una reescritura de texto, no necesita "pensar".
 
 ## Identidad visual
 

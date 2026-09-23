@@ -2,7 +2,7 @@
 **Tipo de documento:** Spec-Driven Development — Especificación funcional y técnica
 **Fase:** MVP / Prototipo local
 **Contexto institucional:** Módulo administrativo de apoyo, inspirado visualmente en el portal público [muniguate.com](https://www.muniguate.com/)
-**Estado:** Borrador para revisión — contiene preguntas abiertas señaladas con 🟡
+**Estado:** Implementado. Todas las preguntas abiertas (🟡) quedaron resueltas y se anota la decisión final junto a cada una; ver [`README.md`](./README.md) para el estado operativo (setup local, despliegue, credenciales).
 
 ---
 
@@ -39,7 +39,7 @@ Fuera de alcance en esta fase (a definir en iteraciones futuras):
 | **Analista de Riesgo** | Registra vulnerabilidades, completa cuestionario NIST, ve recomendaciones |
 | **Directivo / Lectura** | Solo visualiza dashboard y reportes (sin edición) |
 
-🟡 **Pregunta abierta:** ¿El MVP necesita login real con estos tres roles, o basta con un selector de rol simulado (sin autenticación) para acelerar la demo? Se recomienda lo segundo para el prototipo y dejar auth real para la siguiente fase.
+🟡 **Pregunta abierta (resuelta):** ¿login real o selector de rol simulado? Se implementó un punto intermedio: **login real** (JWT + bcrypt) contra **3 cuentas fijas sembradas** ("simulada" se refiere a quiénes son los usuarios — sin SSO/registro — no a cómo se autentican). Detalle en el README, credenciales en `CREDENTIALS.md` (no versionado).
 
 ## 4. Requisitos funcionales por módulo
 
@@ -80,7 +80,7 @@ Ver sección 5 (se detalla aparte por su importancia para la demo).
 - **Opcional/fase 2:** conectar a un LLM (ej. API de Anthropic) para generar recomendaciones más específicas en lenguaje natural, con el motor de reglas como respaldo si no hay conexión.
 - **Criterio de aceptación:** toda vulnerabilidad de riesgo Alto o Crítico muestra al menos una recomendación de mitigación.
 
-🟡 **Pregunta abierta:** ¿Se dispone de una API key (Anthropic/OpenAI) para esta fase, o el MVP debe funcionar completamente offline con el motor de reglas? Recomendación: construir el motor de reglas primero (siempre funciona) y dejar el LLM como mejora opcional detrás de un feature flag.
+🟡 **Pregunta abierta (resuelta):** el motor de reglas es el único camino garantizado, siempre activo. El enriquecimiento opcional detrás del feature flag `LLM_ENABLED` primero se implementó contra Ollama local (solo desarrollo, no llegaba a producción por ser Azure Functions serverless); se migró después a **Google Gemini API (capa gratuita, sin tarjeta)** vía REST, lo que sí permite tenerlo activo en producción sin costo. Nunca reemplaza la recomendación de reglas — se agrega como una segunda fila `Recommendation` con `source=llm`.
 
 ## 5. Dashboard — diseño y justificación
 
@@ -103,7 +103,7 @@ Esto conecta el riesgo técnico con el impacto real ("si este sistema falla o es
 
 **Datos de ejemplo (seed):** todo el contenido de multas será data simulada/estática para el prototipo, no una integración real con el sistema de remisiones.
 
-🟡 **Pregunta abierta:** ¿de acuerdo con este enfoque (multas como ejemplo de activo crítico, no como módulo de negocio independiente), o se prefiere algo distinto?
+🟡 **Pregunta abierta (resuelta):** confirmado tal cual — el "Sistema de Remisiones/Multas" se sembró como activo crítico con métricas de negocio simuladas asociadas (`DemoBusinessMetric`), sin convertirlo en módulo aparte.
 
 ## 6. Modelo de datos (entidades principales)
 
@@ -130,7 +130,9 @@ User (si se implementa auth)
 ├─ id, name, role, email
 ```
 
-## 7. Arquitectura técnica propuesta (prototipo local con Docker)
+## 7. Arquitectura técnica (histórico y estado actual)
+
+### 7.1 Propuesta original (prototipo local con Docker)
 
 ```
 docker-compose.yml
@@ -145,13 +147,34 @@ docker-compose.yml
 - La base de datos se inicializa con un script de seed (activos, vulnerabilidades y multas de ejemplo).
 - El motor de recomendaciones vive como módulo dentro del backend (no como microservicio aparte, para simplicidad del MVP).
 
-🟡 **Preguntas abiertas de infraestructura (para definir antes de pasar a Claude Code):**
-1. **Stack de backend:** ¿Node.js/Express o Python/FastAPI? (FastAPI facilita mucho la parte de "motor de reglas" y cálculos; Node es más uniforme si el frontend ya es React/Next).
-2. **Generación de PDF:** ¿Puppeteer (HTML→PDF, más flexible visualmente) o una librería nativa (ej. ReportLab/WeasyPrint en Python, o pdf-lib en Node)?
-3. **Autenticación:** ¿selector de rol simulado (sin login) para el MVP, o login real con JWT desde el inicio?
-4. **LLM:** ¿se cuenta con API key para fase 2, o el MVP se queda 100% con motor de reglas?
-5. **Identidad visual:** se recomienda tomar del sitio real el logo, la paleta de colores institucional (azul/dorado del escudo municipal) y la tipografía del theme actual. ¿Se puede compartir el logo oficial en formato SVG/PNG y, si existe, una guía de marca? Si no, se replicará de forma aproximada a partir de lo visible en muniguate.com.
-6. **Nombre del proyecto/repositorio:** ¿"SGCM" está bien, o hay un nombre institucional ya definido?
+Esta fue la arquitectura del MVP inicial (fase local). Se abandonó Docker en una fase posterior para desplegar el prototipo de verdad — ver §7.2.
+
+🟡 **Preguntas abiertas de infraestructura (resueltas):**
+1. **Stack de backend:** Python/FastAPI.
+2. **Generación de PDF:** WeasyPrint (HTML/CSS → PDF) en el MVP local con Docker; reemplazado por **xhtml2pdf** al migrar a Azure Functions, porque WeasyPrint requiere librerías nativas del sistema (pango/cairo/gdk-pixbuf) incompatibles con el runtime serverless.
+3. **Autenticación:** login real (JWT) contra usuarios fijos sembrados — ver §3.
+4. **LLM:** motor de reglas + enriquecimiento opcional vía Google Gemini (capa gratuita) — ver §4.6.
+5. **Identidad visual:** se obtuvo el escudo oficial y la paleta real (azul marino + verde) directamente del usuario; implementados en `frontend/src/theme/tokens.css` y `frontend/public/logo.webp`.
+6. **Nombre del proyecto:** "Muniguate" (no "SGCM" como marca de cara al usuario; SGCM queda como nombre técnico/histórico del repo).
+
+### 7.2 Arquitectura de despliegue real (sin Docker)
+
+El MVP se re-desplegó con presupuesto cero, sin Docker, en tres servicios administrados:
+
+```
+Vercel (frontend)          Azure Functions (backend)         Neon (Postgres)
+React/Vite SPA       →     FastAPI vía AsgiFunctionApp   →   branches production/development
+Git integration             (Consumption, plan gratuito       (endpoint directo, sin pooling)
+push a main = deploy         indefinido)
+                             push a main = GitHub Actions
+                             (alembic upgrade head + deploy)
+```
+
+Decisiones clave de esta migración (detalle operativo completo en el README):
+- **Por qué Azure Functions y no AWS EC2/App Service:** se validó que el free tier clásico de EC2 (12 meses) ya había expirado en la cuenta AWS disponible; Azure Functions Consumption es "siempre gratis" (no depende de crédito), usando una cuenta de Azure for Students.
+- **Por qué no Docker:** ninguno de los tres servicios (Vercel, Azure Functions Consumption, Neon) lo requiere ni lo soporta de forma nativa para este caso de uso; simplifica el setup local a un venv + npm.
+- **Azure Functions Python V2 (`AsgiFunctionApp`)** envuelve la app FastAPI existente sin reescribir routers. Requiere `"routePrefix": ""` en `host.json` (cada ruta de FastAPI ya trae su propio `/api`; sin esto el host de Azure duplica el prefijo y no arranca) y Python 3.12 específicamente (3.13 falla al iniciar el host en Linux Consumption).
+- **CI/CD:** GitHub Actions (`.github/workflows/main_muniguate-api.yml`) corre `alembic upgrade head` contra Neon producción y despliega en cada push a `main` que toque `backend/`; Vercel tiene su propio Git integration para el frontend.
 
 ## 8. Lineamientos de diseño (consistencia con muniguate.com)
 
@@ -178,10 +201,11 @@ docker-compose.yml
 
 ---
 
-### Resumen de decisiones pendientes antes de iniciar en Claude Code
-- [ ] Autenticación: simulada vs. real
-- [ ] Stack backend: Node/Express vs. Python/FastAPI
-- [ ] Librería de generación de PDF
-- [ ] Uso de LLM real (¿hay API key?) vs. solo motor de reglas
-- [ ] Assets de marca oficiales (logo, colores exactos, tipografía)
-- [ ] Confirmar enfoque del panel de "multas" como activo de ejemplo (sección 5.2)
+### Resumen de decisiones (todas resueltas)
+- [x] Autenticación: login real (JWT/bcrypt) contra 3 cuentas fijas sembradas
+- [x] Stack backend: Python/FastAPI
+- [x] Librería de generación de PDF: WeasyPrint → xhtml2pdf (al migrar a Azure Functions serverless)
+- [x] LLM: motor de reglas siempre activo + enriquecimiento opcional vía Google Gemini (capa gratuita) detrás de feature flag, habilitado en producción
+- [x] Assets de marca oficiales: escudo y paleta reales de Muniguate implementados
+- [x] Enfoque del panel de "multas" confirmado tal cual (sección 5.2)
+- [x] Infraestructura de despliegue: Vercel + Azure Functions + Neon, sin Docker (sección 7.2)
