@@ -29,7 +29,7 @@ jobs:
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           python -m pip install --upgrade pip
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          pip install --only-binary :all: -r requirements.txt --target=".python_packages/lib/site-packages"
           popd
 
       - name: Upload artifact for deployment job
@@ -41,6 +41,8 @@ jobs:
             ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
             !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/tests
             !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.venv
+            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.env
+            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/local.settings.json
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,7 +62,8 @@ jobs:
       - name: Install migration dependencies
         shell: bash
         working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        run: python -m pip install --quiet -r requirements.txt
+        run: |
+          python -m pip install --quiet --only-binary :all: -r requirements.txt
 
       - name: Run database migrations (Neon production)
         shell: bash
