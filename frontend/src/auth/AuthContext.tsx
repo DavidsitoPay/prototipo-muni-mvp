@@ -1,6 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { fetchMe, login as apiLogin } from "../api/auth";
-import type { User } from "../types";
+import type { User, UserRole } from "../types";
+
+const VALID_ROLES: UserRole[] = ["admin_ti", "analista_riesgo", "directivo"];
+
+function isValidUser(value: unknown): value is User {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.username === "string" &&
+    candidate.username.length > 0 &&
+    typeof candidate.display_name === "string" &&
+    typeof candidate.role === "string" &&
+    VALID_ROLES.includes(candidate.role as UserRole)
+  );
+}
 
 interface AuthContextValue {
   user: User | null;
@@ -17,11 +33,8 @@ function loadStoredUser(): User | null {
   const raw = localStorage.getItem("sgcm_user");
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed.id === "string" && typeof parsed.role === "string") {
-      return parsed as User;
-    }
-    return null;
+    const parsed: unknown = JSON.parse(raw);
+    return isValidUser(parsed) ? parsed : null;
   } catch {
     return null;
   }

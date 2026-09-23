@@ -50,8 +50,11 @@ export function AssetForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       <div>
-        <label className="block text-sm font-medium mb-1">Nombre</label>
+        <label htmlFor="asset-form-name" className="block text-sm font-medium mb-1">
+          Nombre
+        </label>
         <input
+          id="asset-form-name"
           {...register("name")}
           className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
         />
@@ -60,8 +63,14 @@ export function AssetForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium mb-1">Tipo</label>
-          <select {...register("type")} className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
+          <label htmlFor="asset-form-type" className="block text-sm font-medium mb-1">
+            Tipo
+          </label>
+          <select
+            id="asset-form-type"
+            {...register("type")}
+            className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+          >
             {Object.entries(ASSET_TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -70,8 +79,14 @@ export function AssetForm({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Ubicación</label>
-          <select {...register("location")} className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
+          <label htmlFor="asset-form-location" className="block text-sm font-medium mb-1">
+            Ubicación
+          </label>
+          <select
+            id="asset-form-location"
+            {...register("location")}
+            className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+          >
             {Object.entries(ASSET_LOCATION_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -82,8 +97,11 @@ export function AssetForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Dependencia / Dirección responsable</label>
+        <label htmlFor="asset-form-department" className="block text-sm font-medium mb-1">
+          Dependencia / Dirección responsable
+        </label>
         <input
+          id="asset-form-department"
           {...register("department")}
           className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
         />
@@ -91,8 +109,11 @@ export function AssetForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Propietario / Responsable</label>
+        <label htmlFor="asset-form-owner" className="block text-sm font-medium mb-1">
+          Propietario / Responsable
+        </label>
         <input
+          id="asset-form-owner"
           {...register("owner")}
           className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
         />
@@ -101,8 +122,14 @@ export function AssetForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium mb-1">Criticidad</label>
-          <select {...register("criticality")} className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
+          <label htmlFor="asset-form-criticality" className="block text-sm font-medium mb-1">
+            Criticidad
+          </label>
+          <select
+            id="asset-form-criticality"
+            {...register("criticality")}
+            className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+          >
             {Object.entries(ASSET_CRITICALITY_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -111,8 +138,14 @@ export function AssetForm({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Estado</label>
-          <select {...register("status")} className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
+          <label htmlFor="asset-form-status" className="block text-sm font-medium mb-1">
+            Estado
+          </label>
+          <select
+            id="asset-form-status"
+            {...register("status")}
+            className="w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+          >
             {Object.entries(ASSET_STATUS_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
