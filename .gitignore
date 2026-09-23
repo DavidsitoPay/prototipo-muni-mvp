@@ -2,6 +2,9 @@
 .env
 CREDENTIALS.md
 
+# Bitacora de pruebas (curso de Aseguramiento de Software) - no es parte del proyecto
+CASOS-DE-PRUEBA.md
+
 # Python
 __pycache__/
 *.pyc
