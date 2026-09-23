@@ -37,12 +37,18 @@ jobs:
         with:
           name: python-app
           include-hidden-files: true
+          # Allowlist only what the deploy/migration jobs actually need - never a
+          # blanket dump of the working directory, so no credential file (.env,
+          # local.settings.json - both gitignored and never checked out by CI
+          # anyway) can end up in the artifact even by accident.
           path: |
-            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/tests
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.venv
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.env
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/local.settings.json
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/app
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/alembic
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/alembic.ini
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/function_app.py
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/host.json
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/requirements.txt
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.python_packages
 
   deploy:
     runs-on: ubuntu-latest
