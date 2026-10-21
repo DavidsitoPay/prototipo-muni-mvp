@@ -5,11 +5,13 @@ from app.models.vulnerability import Vulnerability
 from app.services.recommendation_engine.service import generate_for_vulnerability
 from app.services.risk_engine import compute_risk
 
+ASSET_REMISIONES_MULTAS = "Sistema de Remisiones/Multas"
+
 # (nombre_activo, descripcion, probabilidad, impacto)
 VULNERABILITIES_DATA = [
-    ("Sistema de Remisiones/Multas", "Falta de parches de seguridad en el servidor web", 5, 5),
-    ("Sistema de Remisiones/Multas", "Uso de contraseñas débiles en panel administrativo", 4, 4),
-    ("Sistema de Remisiones/Multas", "Falta de rate limiting en formulario de pago", 3, 3),
+    (ASSET_REMISIONES_MULTAS, "Falta de parches de seguridad en el servidor web", 5, 5),
+    (ASSET_REMISIONES_MULTAS, "Uso de contraseñas débiles en panel administrativo", 4, 4),
+    (ASSET_REMISIONES_MULTAS, "Falta de rate limiting en formulario de pago", 3, 3),
     ("Sistema EMPAGUA (Agua Potable)", "Sistema operativo sin soporte del fabricante", 4, 5),
     ("Sistema EMPAGUA (Agua Potable)", "Falta de cifrado en transmisión de datos de facturación", 3, 4),
     ("Portal Web Institucional", "Vulnerabilidad XSS en formulario de contacto", 3, 3),
