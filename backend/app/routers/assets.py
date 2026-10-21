@@ -15,11 +15,13 @@ from app.services.risk_engine import asset_risk_band
 
 router = APIRouter(prefix="/api/assets", tags=["assets"])
 
+ASSET_NOT_FOUND = "Activo no encontrado"
+
 
 async def get_asset_or_404(db: AsyncSession, asset_id: uuid.UUID) -> Asset:
     asset = await db.scalar(select(Asset).where(Asset.id == asset_id, Asset.deleted_at.is_(None)))
     if asset is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Activo no encontrado")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, ASSET_NOT_FOUND)
     return asset
 
 
@@ -64,7 +66,7 @@ async def get_asset(asset_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> 
     )
     asset = await db.scalar(stmt)
     if asset is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Activo no encontrado")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, ASSET_NOT_FOUND)
 
     base = _asset_to_out(asset).model_dump()
     base["vulnerabilities"] = list(asset.vulnerabilities)
@@ -96,7 +98,7 @@ async def update_asset(
         select(Asset).options(selectinload(Asset.vulnerabilities)).where(Asset.id == asset_id, Asset.deleted_at.is_(None))
     )
     if asset is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Activo no encontrado")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, ASSET_NOT_FOUND)
 
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(asset, field, value)

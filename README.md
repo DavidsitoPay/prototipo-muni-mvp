@@ -63,6 +63,25 @@ Los despliegues a `main` son automáticos:
 
 SonarCloud analiza cada PR (`sonarcloud.io/project/issues?id=DavidsitoPay_prototipo-muni-mvp`). Los hallazgos de estilo puro en `backend/seed/` y componentes React (props read-only, `response_model` redundante) quedaron pendientes deliberadamente — bajo impacto para un MVP universitario.
 
+## Ramas y control de cambios
+
+Tres ramas de larga vida, cada una representando un ambiente:
+
+| Rama | Rol | Protección |
+|---|---|---|
+| `dev` | Integración diaria del equipo. Las ramas de feature se mergean aquí primero. | Sin restricciones — iteración rápida entre los 2 integrantes. |
+| `qa` | Rama de validación. Solo recibe código desde `dev` ya probado localmente. | PR obligatorio + 1 aprobación + el pipeline (`pr-checks.yml`) debe pasar antes de poder mergear. |
+| `main` | Producción. Un push aquí dispara el deploy real (ver "Despliegue" arriba). | Igual que `qa`: PR obligatorio + 1 aprobación + pipeline en verde. |
+
+Política de promoción: `feature/* → dev → qa → main`. Nunca se hace push directo a `qa` o `main`; siempre vía Pull Request. Si el pipeline de un PR hacia `qa` o `main` falla, GitHub bloquea el botón de merge — no es una convención, es una regla aplicada por la configuración del repositorio (Settings → Branches).
+
+El pipeline de verificación ([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml)) corre en cada Pull Request hacia `dev`, `qa` o `main`:
+
+- `backend-tests`: instala `backend/requirements.txt` y corre `pytest` contra la branch `development` de Neon (nunca contra producción — requiere el secret `NEON_DATABASE_URL_DEV`, distinto del `NEON_DATABASE_URL` de producción que usa el workflow de deploy).
+- `frontend-build`: `npm ci && npm run build`, como smoke check de que el frontend compila.
+
+Este pipeline es independiente del de despliegue ([`main_muniguate-api.yml`](./.github/workflows/main_muniguate-api.yml)), que solo corre con push directo a `main`.
+
 ## Roles y permisos
 
 | Rol | Puede |
