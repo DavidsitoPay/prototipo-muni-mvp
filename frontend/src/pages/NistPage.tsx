@@ -4,7 +4,7 @@ import { fetchNistAssessment, fetchNistQuestions, fetchNistSummary, updateNistAs
 import { Card } from "../components/common/Card";
 import { NistRadarChart } from "../components/charts/NistRadarChart";
 import { NIST_FUNCTION_LABELS } from "../constants/nistFunctions";
-import type { NistFunctionKey } from "../types";
+import type { NistFunctionKey, NistQuestion } from "../types";
 
 const FUNCTION_ORDER: NistFunctionKey[] = ["identify", "protect", "detect", "respond", "recover"];
 
@@ -15,6 +15,65 @@ const SCALE_LABELS: Record<number, string> = {
   4: "Gestionado",
   5: "Optimizado",
 };
+
+function ScoreButton({ n, selected, onSelect }: { n: number; selected: boolean; onSelect: (n: number) => void }) {
+  return (
+    <button
+      type="button"
+      title={SCALE_LABELS[n]}
+      onClick={() => onSelect(n)}
+      className={`w-8 h-8 rounded-md text-xs font-semibold border transition-colors ${
+        selected ? "bg-primary text-white border-primary" : "border-[var(--color-border)] hover:bg-[var(--color-bg)]"
+      }`}
+    >
+      {n}
+    </button>
+  );
+}
+
+function QuestionRow({
+  question,
+  score,
+  onScore,
+}: {
+  question: NistQuestion;
+  score: number | null | undefined;
+  onScore: (code: string, n: number) => void;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+      <p className="text-sm flex-1">{question.text}</p>
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <ScoreButton key={n} n={n} selected={score === n} onSelect={(value) => onScore(question.code, value)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NistFunctionSection({
+  fn,
+  questions,
+  scores,
+  onScore,
+}: {
+  fn: NistFunctionKey;
+  questions: NistQuestion[];
+  scores: Record<string, number | null>;
+  onScore: (code: string, n: number) => void;
+}) {
+  return (
+    <Card>
+      <h2 className="font-semibold mb-3">{NIST_FUNCTION_LABELS[fn]}</h2>
+      <div className="space-y-3">
+        {questions.map((q) => (
+          <QuestionRow key={q.code} question={q} score={scores[q.code]} onScore={onScore} />
+        ))}
+      </div>
+    </Card>
+  );
+}
 
 export default function NistPage() {
   const queryClient = useQueryClient();
@@ -101,33 +160,13 @@ export default function NistPage() {
       )}
 
       {FUNCTION_ORDER.map((fn) => (
-        <Card key={fn}>
-          <h2 className="font-semibold mb-3">{NIST_FUNCTION_LABELS[fn]}</h2>
-          <div className="space-y-3">
-            {(questionsByFunction.get(fn) ?? []).map((q) => (
-              <div key={q.code} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                <p className="text-sm flex-1">{q.text}</p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      title={SCALE_LABELS[n]}
-                      onClick={() => setScores((prev) => ({ ...prev, [q.code]: n }))}
-                      className={`w-8 h-8 rounded-md text-xs font-semibold border transition-colors ${
-                        scores[q.code] === n
-                          ? "bg-primary text-white border-primary"
-                          : "border-[var(--color-border)] hover:bg-[var(--color-bg)]"
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <NistFunctionSection
+          key={fn}
+          fn={fn}
+          questions={questionsByFunction.get(fn) ?? []}
+          scores={scores}
+          onScore={(code, n) => setScores((prev) => ({ ...prev, [code]: n }))}
+        />
       ))}
     </div>
   );
