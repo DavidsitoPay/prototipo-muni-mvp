@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade --only-binary :all: pip
           pip install --only-binary :all: -r requirements.txt --target=".python_packages/lib/site-packages"
           popd
 
@@ -91,7 +91,7 @@ jobs:
           "
 
       - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+        uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656 # v1.5.7
         id: deploy-to-function
         with:
           app-name: 'muniguate-api'
