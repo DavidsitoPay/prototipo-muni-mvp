@@ -59,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     fetchMe()
       .then((freshUser) => {
+        if (!isValidUser(freshUser)) {
+          logout();
+          return;
+        }
         setUser(freshUser);
         localStorage.setItem("sgcm_user", JSON.stringify(freshUser));
       })
@@ -69,6 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const response = await apiLogin(username, password);
+    if (!isValidUser(response.user)) {
+      throw new Error("Respuesta de login inválida");
+    }
     localStorage.setItem("sgcm_token", response.access_token);
     localStorage.setItem("sgcm_user", JSON.stringify(response.user));
     setUser(response.user);
