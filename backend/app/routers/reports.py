@@ -1,5 +1,6 @@
 import asyncio
 from collections import Counter
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy import select
@@ -67,7 +68,7 @@ def _pdf_response(pdf_bytes: bytes, filename: str) -> Response:
 
 @router.get("/executive")
 async def executive_report(
-    db: AsyncSession = Depends(get_db),
+    db: Annotated[AsyncSession, Depends(get_db)],
     type: AssetType | None = None,
     criticality: AssetCriticality | None = None,
     department: str | None = None,
@@ -123,7 +124,7 @@ async def executive_report(
 
 @router.get("/technical")
 async def technical_report(
-    db: AsyncSession = Depends(get_db),
+    db: Annotated[AsyncSession, Depends(get_db)],
     type: AssetType | None = None,
     criticality: AssetCriticality | None = None,
     department: str | None = None,
