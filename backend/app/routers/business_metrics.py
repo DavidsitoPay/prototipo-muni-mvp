@@ -1,4 +1,5 @@
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -17,6 +18,8 @@ router = APIRouter(tags=["business-metrics"])
     response_model=list[BusinessMetricOut],
     dependencies=[Depends(get_current_user)],
 )
-async def list_business_metrics(asset_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> list[DemoBusinessMetric]:
+async def list_business_metrics(
+    asset_id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_db)]
+) -> list[DemoBusinessMetric]:
     result = await db.scalars(select(DemoBusinessMetric).where(DemoBusinessMetric.asset_id == asset_id))
     return list(result.all())
