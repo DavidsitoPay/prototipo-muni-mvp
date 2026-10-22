@@ -27,6 +27,49 @@ export default function RiesgosPage() {
     [assetsQuery.data]
   );
 
+  function renderVulnerabilitiesBody() {
+    if (vulnsQuery.isLoading) {
+      return <p className="text-sm text-[var(--color-text-muted)]">Cargando vulnerabilidades...</p>;
+    }
+    if (vulnsQuery.isError) {
+      return <p className="text-sm text-risk-critico">No se pudieron cargar las vulnerabilidades.</p>;
+    }
+    const vulnerabilities = vulnsQuery.data ?? [];
+    if (vulnerabilities.length === 0) {
+      return <p className="text-sm text-[var(--color-text-muted)]">No hay vulnerabilidades que coincidan con los filtros.</p>;
+    }
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
+              <th className="py-2 pr-3">Descripción</th>
+              <th className="py-2 pr-3">Activo</th>
+              <th className="py-2 pr-3">Riesgo</th>
+              <th className="py-2 pr-3">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {vulnerabilities.map((v) => (
+              <tr key={v.id} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-bg)]">
+                <td className="py-2 pr-3 max-w-md">{v.description}</td>
+                <td className="py-2 pr-3">
+                  <Link to={`/activos/${v.asset_id}`} className="text-primary hover:underline">
+                    {assetNameById.get(v.asset_id) ?? "Ver activo"}
+                  </Link>
+                </td>
+                <td className="py-2 pr-3">
+                  <RiskBadge band={v.risk_band} /> <span className="text-xs text-[var(--color-text-muted)]">({v.risk_score})</span>
+                </td>
+                <td className="py-2 pr-3">{v.status === "mitigada" ? "Mitigada" : "Abierta"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold text-primary">Riesgos</h1>
@@ -75,42 +118,7 @@ export default function RiesgosPage() {
           </div>
         </div>
 
-        {vulnsQuery.isLoading ? (
-          <p className="text-sm text-[var(--color-text-muted)]">Cargando vulnerabilidades...</p>
-        ) : vulnsQuery.isError ? (
-          <p className="text-sm text-risk-critico">No se pudieron cargar las vulnerabilidades.</p>
-        ) : (vulnsQuery.data ?? []).length === 0 ? (
-          <p className="text-sm text-[var(--color-text-muted)]">No hay vulnerabilidades que coincidan con los filtros.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
-                  <th className="py-2 pr-3">Descripción</th>
-                  <th className="py-2 pr-3">Activo</th>
-                  <th className="py-2 pr-3">Riesgo</th>
-                  <th className="py-2 pr-3">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(vulnsQuery.data ?? []).map((v) => (
-                  <tr key={v.id} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-bg)]">
-                    <td className="py-2 pr-3 max-w-md">{v.description}</td>
-                    <td className="py-2 pr-3">
-                      <Link to={`/activos/${v.asset_id}`} className="text-primary hover:underline">
-                        {assetNameById.get(v.asset_id) ?? "Ver activo"}
-                      </Link>
-                    </td>
-                    <td className="py-2 pr-3">
-                      <RiskBadge band={v.risk_band} /> <span className="text-xs text-[var(--color-text-muted)]">({v.risk_score})</span>
-                    </td>
-                    <td className="py-2 pr-3">{v.status === "mitigada" ? "Mitigada" : "Abierta"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {renderVulnerabilitiesBody()}
       </Card>
     </div>
   );

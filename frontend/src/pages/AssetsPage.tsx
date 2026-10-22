@@ -52,6 +52,26 @@ export default function AssetsPage() {
     }
   }
 
+  function renderAssetsBody() {
+    if (assetsQuery.isLoading) {
+      return <p className="text-sm text-[var(--color-text-muted)]">Cargando activos...</p>;
+    }
+    if (assetsQuery.isError) {
+      return <p className="text-sm text-risk-critico">No se pudieron cargar los activos.</p>;
+    }
+    return (
+      <AssetTable
+        assets={assetsQuery.data ?? []}
+        canManage={canEdit}
+        onEdit={(asset) => {
+          setEditingAsset(asset);
+          setModalMode("edit");
+        }}
+        onDelete={handleDelete}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -74,23 +94,7 @@ export default function AssetsPage() {
         <p className="text-sm text-risk-critico">No se pudo eliminar el activo. Intenta de nuevo.</p>
       )}
 
-      <Card>
-        {assetsQuery.isLoading ? (
-          <p className="text-sm text-[var(--color-text-muted)]">Cargando activos...</p>
-        ) : assetsQuery.isError ? (
-          <p className="text-sm text-risk-critico">No se pudieron cargar los activos.</p>
-        ) : (
-          <AssetTable
-            assets={assetsQuery.data ?? []}
-            canManage={canEdit}
-            onEdit={(asset) => {
-              setEditingAsset(asset);
-              setModalMode("edit");
-            }}
-            onDelete={handleDelete}
-          />
-        )}
-      </Card>
+      <Card>{renderAssetsBody()}</Card>
 
       {modalMode === "create" && (
         <Modal title="Nuevo activo" onClose={() => setModalMode(null)}>

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { fetchMe, login as apiLogin } from "../api/auth";
 import type { User, UserRole } from "../types";
 
-const VALID_ROLES: UserRole[] = ["admin_ti", "analista_riesgo", "directivo"];
+const VALID_ROLES: Set<UserRole> = new Set(["admin_ti", "analista_riesgo", "directivo"]);
 
 function isValidUser(value: unknown): value is User {
   if (typeof value !== "object" || value === null) return false;
@@ -14,7 +14,7 @@ function isValidUser(value: unknown): value is User {
     candidate.username.length > 0 &&
     typeof candidate.display_name === "string" &&
     typeof candidate.role === "string" &&
-    VALID_ROLES.includes(candidate.role as UserRole)
+    VALID_ROLES.has(candidate.role as UserRole)
   );
 }
 
