@@ -8,12 +8,12 @@ export function AssetTable({
   canManage,
   onEdit,
   onDelete,
-}: {
+}: Readonly<{
   assets: Asset[];
   canManage: boolean;
   onEdit: (asset: Asset) => void;
   onDelete: (asset: Asset) => void;
-}) {
+}>) {
   if (assets.length === 0) {
     return <p className="text-sm text-[var(--color-text-muted)] py-6 text-center">No hay activos que coincidan con los filtros.</p>;
   }

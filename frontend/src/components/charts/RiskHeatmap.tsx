@@ -9,7 +9,7 @@ function colorFor(count: number, max: number): string {
   return "#86efac";
 }
 
-export function RiskHeatmap({ cells }: { cells: HeatmapCell[] }) {
+export function RiskHeatmap({ cells }: Readonly<{ cells: HeatmapCell[] }>) {
   const max = Math.max(1, ...cells.map((c) => c.count));
   const byKey = new Map(cells.map((c) => [`${c.probability}-${c.impact}`, c.count]));
 
