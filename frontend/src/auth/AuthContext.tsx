@@ -3,25 +3,11 @@ import { fetchMe, login as apiLogin } from "../api/auth";
 import type { User, UserRole } from "../types";
 
 const VALID_ROLES: Set<UserRole> = new Set(["admin_ti", "analista_riesgo", "directivo"]);
-const UNSAFE_TEXT_CHARS = /[^\p{L}\p{N}\s.@_-]/gu;
-const MAX_TEXT_LENGTH = 200;
-
-function sanitizeText(value: string): string {
-  return value.replace(UNSAFE_TEXT_CHARS, "").slice(0, MAX_TEXT_LENGTH);
-}
-
-// Reconstruye un User nuevo con los campos de texto libre (username,
-// display_name) restringidos a un allowlist de caracteres antes de
-// persistirlo: no basta con validar la forma del objeto (isValidUser),
-// el contenido de esos strings también debe sanearse antes de guardarlo
-// en localStorage.
-function sanitizeUser(user: User): User {
-  return {
-    ...user,
-    username: sanitizeText(user.username),
-    display_name: sanitizeText(user.display_name),
-  };
-}
+// Allowlist de caracteres para texto libre persistido en localStorage
+// (username, display_name): si el valor no calza, se rechaza en vez de
+// limpiarlo, para no guardar silenciosamente una versión mutilada de lo
+// que mandó el backend.
+const SAFE_FREE_TEXT = /^[\p{L}\p{N}\s.@_-]{1,200}$/u;
 
 function isValidUser(value: unknown): value is User {
   if (typeof value !== "object" || value === null) return false;
@@ -82,9 +68,15 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
           logout();
           return;
         }
-        const freshUser = sanitizeUser(rawUser);
-        setUser(freshUser);
-        localStorage.setItem("sgcm_user", JSON.stringify(freshUser));
+        const username = rawUser.username;
+        const displayName = rawUser.display_name;
+        if (!SAFE_FREE_TEXT.test(username) || !SAFE_FREE_TEXT.test(displayName)) {
+          logout();
+          return;
+        }
+        const safeUser: User = { id: rawUser.id, username, display_name: displayName, role: rawUser.role };
+        setUser(safeUser);
+        localStorage.setItem("sgcm_user", JSON.stringify(safeUser));
       })
       .catch(() => logout())
       .finally(() => setIsCheckingSession(false));
@@ -96,10 +88,20 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     if (!isValidUser(response.user)) {
       throw new Error("Respuesta de login inválida");
     }
-    const sanitizedUser = sanitizeUser(response.user);
+    const safeUsername = response.user.username;
+    const safeDisplayName = response.user.display_name;
+    if (!SAFE_FREE_TEXT.test(safeUsername) || !SAFE_FREE_TEXT.test(safeDisplayName)) {
+      throw new Error("Respuesta de login inválida");
+    }
+    const safeUser: User = {
+      id: response.user.id,
+      username: safeUsername,
+      display_name: safeDisplayName,
+      role: response.user.role,
+    };
     localStorage.setItem("sgcm_token", response.access_token);
-    localStorage.setItem("sgcm_user", JSON.stringify(sanitizedUser));
-    setUser(sanitizedUser);
+    localStorage.setItem("sgcm_user", JSON.stringify(safeUser));
+    setUser(safeUser);
   }, []);
 
   const value = useMemo<AuthContextValue>(
