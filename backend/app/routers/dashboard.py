@@ -36,7 +36,7 @@ async def _active_assets_with_vulnerabilities(db: AsyncSession) -> list[Asset]:
     return list(result.unique().all())
 
 
-@router.get("/summary", response_model=DashboardSummaryOut)
+@router.get("/summary")
 async def summary(db: AsyncSession = Depends(get_db)) -> DashboardSummaryOut:
     assets = await _active_assets_with_vulnerabilities(db)
 
@@ -79,7 +79,7 @@ async def summary(db: AsyncSession = Depends(get_db)) -> DashboardSummaryOut:
     )
 
 
-@router.get("/heatmap", response_model=HeatmapOut)
+@router.get("/heatmap")
 async def heatmap(db: AsyncSession = Depends(get_db)) -> HeatmapOut:
     assets = await _active_assets_with_vulnerabilities(db)
     active_vulns = [v for a in assets for v in active_vulnerabilities(a.vulnerabilities)]
@@ -92,7 +92,7 @@ async def heatmap(db: AsyncSession = Depends(get_db)) -> HeatmapOut:
     return HeatmapOut(cells=cells)
 
 
-@router.get("/nist-radar", response_model=NistRadarOut)
+@router.get("/nist-radar")
 async def nist_radar(db: AsyncSession = Depends(get_db)) -> NistRadarOut:
     rows = (await db.scalars(select(NistAssessment))).all()
     points = [

@@ -25,11 +25,11 @@ export function AssetForm({
   initial,
   onSubmit,
   submitLabel = "Guardar",
-}: {
+}: Readonly<{
   initial?: Partial<Asset>;
   onSubmit: (values: AssetFormValues) => void;
   submitLabel?: string;
-}) {
+}>) {
   const {
     register,
     handleSubmit,

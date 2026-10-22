@@ -4,10 +4,10 @@ import { ASSET_CRITICALITY_LABELS, ASSET_TYPE_LABELS } from "../../constants/ass
 export function AssetFiltersBar({
   filters,
   onChange,
-}: {
+}: Readonly<{
   filters: Filters;
   onChange: (filters: Filters) => void;
-}) {
+}>) {
   return (
     <div className="flex flex-wrap gap-3 items-end">
       <div>

@@ -6,10 +6,10 @@ from app.models.business_metric import DemoBusinessMetric
 PERIOD = "2026-08"
 
 METRICS_DATA = [
-    dict(label="Total de multas", value=450000, period=PERIOD, unit="Q"),
-    dict(label="Monto pagado", value=310000, period=PERIOD, unit="Q"),
-    dict(label="Monto pendiente de pago", value=140000, period=PERIOD, unit="Q"),
-    dict(label="Cantidad de multas emitidas", value=1240, period=PERIOD, unit="unidades"),
+    {"label": "Total de multas", "value": 450000, "period": PERIOD, "unit": "Q"},
+    {"label": "Monto pagado", "value": 310000, "period": PERIOD, "unit": "Q"},
+    {"label": "Monto pendiente de pago", "value": 140000, "period": PERIOD, "unit": "Q"},
+    {"label": "Cantidad de multas emitidas", "value": 1240, "period": PERIOD, "unit": "unidades"},
 ]
 
 

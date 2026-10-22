@@ -31,7 +31,7 @@ def _asset_to_out(asset: Asset) -> AssetOut:
     return AssetOut.model_validate(data)
 
 
-@router.get("", response_model=list[AssetOut], dependencies=[Depends(get_current_user)])
+@router.get("", dependencies=[Depends(get_current_user)])
 async def list_assets(
     db: AsyncSession = Depends(get_db),
     type: AssetType | None = None,
@@ -57,7 +57,7 @@ async def list_assets(
     return [_asset_to_out(asset) for asset in result.unique().all()]
 
 
-@router.get("/{asset_id}", response_model=AssetDetailOut, dependencies=[Depends(get_current_user)])
+@router.get("/{asset_id}", dependencies=[Depends(get_current_user)])
 async def get_asset(asset_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> AssetDetailOut:
     stmt = (
         select(Asset)
@@ -74,7 +74,7 @@ async def get_asset(asset_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> 
     return AssetDetailOut.model_validate(base)
 
 
-@router.post("", response_model=AssetOut, status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_asset(
     payload: AssetCreate,
     db: AsyncSession = Depends(get_db),
@@ -87,7 +87,7 @@ async def create_asset(
     return _asset_to_out(asset)
 
 
-@router.put("/{asset_id}", response_model=AssetOut)
+@router.put("/{asset_id}")
 async def update_asset(
     asset_id: uuid.UUID,
     payload: AssetUpdate,

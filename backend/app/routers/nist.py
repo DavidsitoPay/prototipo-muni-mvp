@@ -21,7 +21,7 @@ from app.services.recommendation_engine.service import generate_for_nist_functio
 router = APIRouter(prefix="/api/nist", tags=["nist"])
 
 
-@router.get("/questions", response_model=list[NistQuestionOut], dependencies=[Depends(get_current_user)])
+@router.get("/questions", dependencies=[Depends(get_current_user)])
 async def get_questions() -> list[NistQuestionOut]:
     return [NistQuestionOut(code=q["code"], function=q["function"], text=q["text"]) for q in QUESTION_CATALOG]
 
@@ -42,13 +42,13 @@ def _build_assessment_out(rows_by_code: dict[str, NistAssessment]) -> list[NistA
     return out
 
 
-@router.get("/assessment", response_model=list[NistAssessmentOut], dependencies=[Depends(get_current_user)])
+@router.get("/assessment", dependencies=[Depends(get_current_user)])
 async def get_assessment(db: AsyncSession = Depends(get_db)) -> list[NistAssessmentOut]:
     result = await db.scalars(select(NistAssessment))
     return _build_assessment_out({row.question_code: row for row in result.all()})
 
 
-@router.put("/assessment", response_model=list[NistAssessmentOut])
+@router.put("/assessment")
 async def update_assessment(
     answers: list[NistAnswerIn],
     db: AsyncSession = Depends(get_db),
@@ -92,7 +92,7 @@ async def update_assessment(
     return _build_assessment_out(existing_rows)
 
 
-@router.get("/summary", response_model=NistSummaryOut, dependencies=[Depends(get_current_user)])
+@router.get("/summary", dependencies=[Depends(get_current_user)])
 async def get_summary(db: AsyncSession = Depends(get_db)) -> NistSummaryOut:
     result = await db.scalars(select(NistAssessment))
     rows = list(result.all())

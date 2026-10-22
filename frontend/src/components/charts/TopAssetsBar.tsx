@@ -2,7 +2,7 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import type { DashboardSummary } from "../../types";
 import { RISK_BAND_COLORS } from "../../constants/riskBands";
 
-export function TopAssetsBar({ data }: { data: DashboardSummary["top_risky_assets"] }) {
+export function TopAssetsBar({ data }: Readonly<{ data: DashboardSummary["top_risky_assets"] }>) {
   if (data.length === 0) {
     return <div className="text-sm text-[var(--color-text-muted)] py-8 text-center">Sin activos con riesgo registrado.</div>;
   }

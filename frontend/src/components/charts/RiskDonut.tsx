@@ -2,7 +2,7 @@ import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recha
 import type { RiskBand } from "../../types";
 import { RISK_BAND_COLORS, RISK_BAND_LABELS } from "../../constants/riskBands";
 
-export function RiskDonut({ data }: { data: { risk_band: RiskBand; count: number }[] }) {
+export function RiskDonut({ data }: Readonly<{ data: { risk_band: RiskBand; count: number }[] }>) {
   const chartData = data.map((d) => ({ name: RISK_BAND_LABELS[d.risk_band], value: d.count, band: d.risk_band }));
   const total = chartData.reduce((sum, d) => sum + d.value, 0);
 
