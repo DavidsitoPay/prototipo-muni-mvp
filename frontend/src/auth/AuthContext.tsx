@@ -68,12 +68,15 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
           logout();
           return;
         }
-        if (!SAFE_FREE_TEXT.test(rawUser.username) || !SAFE_FREE_TEXT.test(rawUser.display_name)) {
+        const username = rawUser.username;
+        const displayName = rawUser.display_name;
+        if (!SAFE_FREE_TEXT.test(username) || !SAFE_FREE_TEXT.test(displayName)) {
           logout();
           return;
         }
-        setUser(rawUser);
-        localStorage.setItem("sgcm_user", JSON.stringify(rawUser));
+        const safeUser: User = { id: rawUser.id, username, display_name: displayName, role: rawUser.role };
+        setUser(safeUser);
+        localStorage.setItem("sgcm_user", JSON.stringify(safeUser));
       })
       .catch(() => logout())
       .finally(() => setIsCheckingSession(false));
@@ -85,12 +88,20 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     if (!isValidUser(response.user)) {
       throw new Error("Respuesta de login inválida");
     }
-    if (!SAFE_FREE_TEXT.test(response.user.username) || !SAFE_FREE_TEXT.test(response.user.display_name)) {
+    const safeUsername = response.user.username;
+    const safeDisplayName = response.user.display_name;
+    if (!SAFE_FREE_TEXT.test(safeUsername) || !SAFE_FREE_TEXT.test(safeDisplayName)) {
       throw new Error("Respuesta de login inválida");
     }
+    const safeUser: User = {
+      id: response.user.id,
+      username: safeUsername,
+      display_name: safeDisplayName,
+      role: response.user.role,
+    };
     localStorage.setItem("sgcm_token", response.access_token);
-    localStorage.setItem("sgcm_user", JSON.stringify(response.user));
-    setUser(response.user);
+    localStorage.setItem("sgcm_user", JSON.stringify(safeUser));
+    setUser(safeUser);
   }, []);
 
   const value = useMemo<AuthContextValue>(
