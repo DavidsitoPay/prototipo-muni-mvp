@@ -8,7 +8,7 @@ const RISK_CSS_COLORS: Record<RiskBand, string> = {
   critico: "var(--color-risk-critico)",
 };
 
-export function RiskBadge({ band }: { band: RiskBand | null }) {
+export function RiskBadge({ band }: Readonly<{ band: RiskBand | null }>) {
   if (!band) {
     return (
       <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-300 text-gray-700">

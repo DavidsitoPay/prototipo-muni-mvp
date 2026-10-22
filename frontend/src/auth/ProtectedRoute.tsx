@@ -6,10 +6,10 @@ import { useAuth } from "./AuthContext";
 export function ProtectedRoute({
   children,
   allowedRoles,
-}: {
+}: Readonly<{
   children: ReactNode;
   allowedRoles?: UserRole[];
-}) {
+}>) {
   const { user, isAuthenticated, isCheckingSession } = useAuth();
 
   if (isCheckingSession) {

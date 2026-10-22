@@ -16,7 +16,11 @@ const SCALE_LABELS: Record<number, string> = {
   5: "Optimizado",
 };
 
-function ScoreButton({ n, selected, onSelect }: { n: number; selected: boolean; onSelect: (n: number) => void }) {
+function ScoreButton({
+  n,
+  selected,
+  onSelect,
+}: Readonly<{ n: number; selected: boolean; onSelect: (n: number) => void }>) {
   return (
     <button
       type="button"
@@ -35,11 +39,11 @@ function QuestionRow({
   question,
   score,
   onScore,
-}: {
+}: Readonly<{
   question: NistQuestion;
   score: number | null | undefined;
   onScore: (code: string, n: number) => void;
-}) {
+}>) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
       <p className="text-sm flex-1">{question.text}</p>
@@ -57,12 +61,12 @@ function NistFunctionSection({
   questions,
   scores,
   onScore,
-}: {
+}: Readonly<{
   fn: NistFunctionKey;
   questions: NistQuestion[];
   scores: Record<string, number | null>;
   onScore: (code: string, n: number) => void;
-}) {
+}>) {
   return (
     <Card>
       <h2 className="font-semibold mb-3">{NIST_FUNCTION_LABELS[fn]}</h2>

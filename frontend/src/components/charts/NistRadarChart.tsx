@@ -10,7 +10,9 @@ import {
 import type { NistFunctionKey } from "../../types";
 import { NIST_FUNCTION_LABELS } from "../../constants/nistFunctions";
 
-export function NistRadarChart({ points }: { points: { function: NistFunctionKey; maturity_percent: number | null }[] }) {
+export function NistRadarChart({
+  points,
+}: Readonly<{ points: { function: NistFunctionKey; maturity_percent: number | null }[] }>) {
   const data = points.map((p) => ({
     function: NIST_FUNCTION_LABELS[p.function],
     madurez: p.maturity_percent ?? 0,

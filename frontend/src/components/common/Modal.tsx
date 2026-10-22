@@ -4,11 +4,11 @@ export function Modal({
   title,
   onClose,
   children,
-}: {
+}: Readonly<{
   title: string;
   onClose: () => void;
   children: ReactNode;
-}) {
+}>) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
