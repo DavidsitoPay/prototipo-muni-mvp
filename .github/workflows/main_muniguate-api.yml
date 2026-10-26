@@ -26,6 +26,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.lock.txt
 
       - name: Resolve project dependencies using pip
         shell: bash
@@ -54,9 +56,15 @@ jobs:
             ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/requirements.lock.txt
             ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.python_packages
 
-  unit-tests:
+  # unit-tests-backend, unit-tests-frontend and api-tests have no needs: between
+  # them or on build - none of them reads build's output, so they run
+  # concurrently. static-analysis DOES need the two unit-tests jobs now: it
+  # ingests their coverage reports (sonar.python.coverage.reportPaths /
+  # sonar.javascript.lcov.reportPaths), so unlike build it's a real data
+  # dependency, not an artificial one. deploy waits on all five - the
+  # fail-blocks-deploy guarantee is identical to a fully sequential chain.
+  unit-tests-backend:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,6 +73,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.lock.txt
 
       - name: Install backend dependencies
         working-directory: backend
@@ -72,11 +82,23 @@ jobs:
           python -m pip install --only-binary :all: pip==26.2.2
           pip install --only-binary :all: --require-hashes -r requirements.lock.txt
 
-      - name: Run backend unit tests
+      - name: Run backend unit tests with coverage
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL_DEV }}
-        run: pytest -q
+        run: pytest -q --cov=app --cov-report=xml:coverage.xml
+
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+
+  unit-tests-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -89,18 +111,36 @@ jobs:
         working-directory: frontend
         run: npm ci --ignore-scripts
 
-      - name: Run frontend unit tests
+      - name: Run frontend unit tests with coverage
         working-directory: frontend
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/lcov.info
 
   static-analysis:
     runs-on: ubuntu-latest
-    needs: unit-tests
+    needs: [unit-tests-backend, unit-tests-frontend]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download backend coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend
+
+      - name: Download frontend coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
 
       - name: Setup Java 17 (requerido por el scanner de SonarCloud)
         uses: actions/setup-java@v4
@@ -123,7 +163,6 @@ jobs:
 
   api-tests:
     runs-on: ubuntu-latest
-    needs: static-analysis
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -132,6 +171,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.lock.txt
 
       - name: Install backend dependencies
         working-directory: backend
@@ -197,7 +238,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: api-tests
+    needs: [build, unit-tests-backend, unit-tests-frontend, static-analysis, api-tests]
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -209,6 +250,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.lock.txt
 
       - name: Install migration dependencies
         shell: bash

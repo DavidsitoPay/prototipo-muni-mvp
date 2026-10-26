@@ -24,7 +24,9 @@ def test_verify_password_rejects_incorrect_password():
 
 
 def test_hash_password_is_salted_and_not_deterministic():
-    assert hash_password("Demo123!") != hash_password("Demo123!")
+    first_hash = hash_password("Demo123!")
+    second_hash = hash_password("Demo123!")
+    assert first_hash != second_hash
 
 
 def test_create_and_decode_access_token_roundtrip():
