@@ -1,0 +1,1072 @@
+{
+  "info": {
+    "_postman_id": "9fde0ab3-1c8e-480a-ab99-c9c596a28eb9",
+    "name": "Muniguate SGCM - Pruebas de API (E11)",
+    "description": "Pruebas de API del backend de Muniguate SGCM. Ejecutar las carpetas en orden: la carpeta 1 obtiene los tokens que usan las demás y la carpeta 2 contiene el flujo de negocio encadenado (crea y luego elimina sus propios datos).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Autenticación",
+      "item": [
+        {
+          "name": "01 Login Administrador TI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_user}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "const schema = {type:'object', required:['access_token','token_type','user'], properties:{access_token:{type:'string'}, token_type:{type:'string'}, user:{type:'object', required:['id','username','role','display_name'], properties:{id:{type:'string'}, username:{type:'string'}, role:{type:'string'}, display_name:{type:'string'}}}}};",
+                  "pm.test('Esquema de la respuesta de login', () => pm.response.to.have.jsonSchema(schema));",
+                  "const login = pm.response.json();",
+                  "pm.test('Tipo de token bearer y rol admin_ti', () => { pm.expect(login.token_type).to.eql('bearer'); pm.expect(login.user.role).to.eql('admin_ti'); });",
+                  "pm.environment.set('admin_token', login.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Login Analista de Riesgo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{analista_user}}\",\n  \"password\": \"{{analista_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "const schema = {type:'object', required:['access_token','token_type','user'], properties:{access_token:{type:'string'}, token_type:{type:'string'}, user:{type:'object', required:['id','username','role','display_name'], properties:{id:{type:'string'}, username:{type:'string'}, role:{type:'string'}, display_name:{type:'string'}}}}};",
+                  "pm.test('Esquema de la respuesta de login', () => pm.response.to.have.jsonSchema(schema));",
+                  "const login = pm.response.json();",
+                  "pm.test('Tipo de token bearer y rol analista_riesgo', () => { pm.expect(login.token_type).to.eql('bearer'); pm.expect(login.user.role).to.eql('analista_riesgo'); });",
+                  "pm.environment.set('analista_token', login.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Login Directivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{directivo_user}}\",\n  \"password\": \"{{directivo_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "const schema = {type:'object', required:['access_token','token_type','user'], properties:{access_token:{type:'string'}, token_type:{type:'string'}, user:{type:'object', required:['id','username','role','display_name'], properties:{id:{type:'string'}, username:{type:'string'}, role:{type:'string'}, display_name:{type:'string'}}}}};",
+                  "pm.test('Esquema de la respuesta de login', () => pm.response.to.have.jsonSchema(schema));",
+                  "const login = pm.response.json();",
+                  "pm.test('Tipo de token bearer y rol directivo', () => { pm.expect(login.token_type).to.eql('bearer'); pm.expect(login.user.role).to.eql('directivo'); });",
+                  "pm.environment.set('directivo_token', login.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Login con contraseña incorrecta (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_user}}\",\n  \"password\": \"contraseña-incorrecta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Esquema de error', () => pm.response.to.have.jsonSchema({type:'object', required:['detail'], properties:{detail:{type:'string'}}}));",
+                  "pm.test('Mensaje de credenciales inválidas', () => pm.expect(pm.response.json().detail).to.eql('Usuario o contraseña incorrectos'));",
+                  "pm.test('No devuelve token', () => pm.expect(pm.response.json()).to.not.have.property('access_token'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Usuario autenticado (GET /auth/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de usuario', () => pm.response.to.have.jsonSchema({type:'object', required:['id','username','role','display_name']}));",
+                  "pm.test('Corresponde al usuario que inició sesión', () => { const u = pm.response.json(); pm.expect(u.username).to.eql(pm.environment.get('admin_user')); pm.expect(u.role).to.eql('admin_ti'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Consulta sin token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Esquema de error', () => pm.response.to.have.jsonSchema({type:'object', required:['detail']}));",
+                  "pm.test('Mensaje de no autenticado', () => pm.expect(pm.response.json().detail).to.eql('No autenticado'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Flujo de negocio: activo, vulnerabilidad y riesgo",
+      "item": [
+        {
+          "name": "07 Dashboard antes del flujo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "summary"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json();",
+                  "pm.test('Total de activos es un número', () => pm.expect(d.total_assets).to.be.a('number'));",
+                  "pm.environment.set('total_assets_antes', d.total_assets);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Crear activo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Activo QA Postman\",\n  \"type\": \"servidor\",\n  \"department\": \"Dirección de Informática\",\n  \"criticality\": \"alta\",\n  \"status\": \"activo\",\n  \"owner\": \"Equipo QA\",\n  \"location\": \"nube\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Esquema de activo', () => pm.response.to.have.jsonSchema({type:'object', required:['id','name','type','department','criticality','status','owner','location','created_at','risk_band'], properties:{id:{type:'string'}, name:{type:'string'}, type:{enum:['servidor','aplicacion','base_datos','red','endpoint','sistema_web_publico']}, criticality:{enum:['baja','media','alta','critica']}, status:{enum:['activo','mantenimiento','dado_de_baja']}, location:{enum:['fisico','nube','on_prem']}, risk_band:{enum:[null,'bajo','medio','alto','critico']}}}));",
+                  "const a = pm.response.json();",
+                  "pm.test('Datos guardados y sin riesgo inicial', () => { pm.expect(a.name).to.eql('Activo QA Postman'); pm.expect(a.criticality).to.eql('alta'); pm.expect(a.risk_band).to.be.null; });",
+                  "pm.environment.set('asset_id', a.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Dashboard refleja el nuevo activo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "summary"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema del resumen', () => pm.response.to.have.jsonSchema({type:'object', required:['total_assets','assets_by_criticality','vulnerabilities_by_risk_band','nist_global_maturity_percent','top_risky_assets'], properties:{assets_by_criticality:{type:'array', minItems:4, maxItems:4}, vulnerabilities_by_risk_band:{type:'array', minItems:4, maxItems:4}, top_risky_assets:{type:'array', maxItems:5}}}));",
+                  "pm.test('El total de activos aumentó en 1', () => pm.expect(pm.response.json().total_assets).to.eql(Number(pm.environment.get('total_assets_antes')) + 1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 Registrar vulnerabilidad crítica (5 x 5)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analista_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}/vulnerabilities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets",
+                "{{asset_id}}",
+                "vulnerabilities"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Vulnerabilidad de prueba QA\",\n  \"probability\": 5,\n  \"impact\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Esquema de vulnerabilidad', () => pm.response.to.have.jsonSchema({type:'object', required:['id','asset_id','description','probability','impact','risk_score','risk_band','status','created_at'], properties:{probability:{type:'integer',minimum:1,maximum:5}, impact:{type:'integer',minimum:1,maximum:5}, risk_score:{type:'integer',minimum:1,maximum:25}, risk_band:{enum:['bajo','medio','alto','critico']}, status:{enum:['abierta','mitigada']}}}));",
+                  "const v = pm.response.json();",
+                  "pm.test('Riesgo calculado 25, banda crítico, estado abierta', () => { pm.expect(v.risk_score).to.eql(25); pm.expect(v.risk_band).to.eql('critico'); pm.expect(v.status).to.eql('abierta'); pm.expect(v.asset_id).to.eql(pm.environment.get('asset_id')); });",
+                  "pm.environment.set('vuln_id', v.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 Recomendación generada automáticamente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/vulnerabilities/{{vuln_id}}/recommendations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "vulnerabilities",
+                "{{vuln_id}}",
+                "recommendations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de lista de recomendaciones', () => pm.response.to.have.jsonSchema({type:'array', items:{type:'object', required:['id','vulnerability_id','source','text','created_at'], properties:{source:{enum:['regla','llm']}, text:{type:'string', minLength:1}}}}));",
+                  "const recs = pm.response.json();",
+                  "pm.test('Existe al menos una recomendación del motor de reglas', () => pm.expect(recs.some(r => r.source === 'regla')).to.be.true);",
+                  "pm.test('Las recomendaciones pertenecen a la vulnerabilidad', () => recs.forEach(r => pm.expect(r.vulnerability_id).to.eql(pm.environment.get('vuln_id'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 Activo toma la banda de su vulnerabilidad",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets",
+                "{{asset_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de detalle de activo', () => pm.response.to.have.jsonSchema({type:'object', required:['id','risk_band','vulnerabilities','business_metrics'], properties:{vulnerabilities:{type:'array'}, business_metrics:{type:'array'}}}));",
+                  "const a = pm.response.json();",
+                  "pm.test('Riesgo del activo crítico con una vulnerabilidad', () => { pm.expect(a.risk_band).to.eql('critico'); pm.expect(a.vulnerabilities).to.have.lengthOf(1); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 Actualizar vulnerabilidad a 2 x 2 (recálculo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analista_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/vulnerabilities/{{vuln_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "vulnerabilities",
+                "{{vuln_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"probability\": 2,\n  \"impact\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de vulnerabilidad', () => pm.response.to.have.jsonSchema({type:'object', required:['id','asset_id','description','probability','impact','risk_score','risk_band','status','created_at'], properties:{probability:{type:'integer',minimum:1,maximum:5}, impact:{type:'integer',minimum:1,maximum:5}, risk_score:{type:'integer',minimum:1,maximum:25}, risk_band:{enum:['bajo','medio','alto','critico']}, status:{enum:['abierta','mitigada']}}}));",
+                  "const v = pm.response.json();",
+                  "pm.test('Riesgo recalculado 4, banda bajo', () => { pm.expect(v.risk_score).to.eql(4); pm.expect(v.risk_band).to.eql('bajo'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14 Mitigar vulnerabilidad",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analista_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/vulnerabilities/{{vuln_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "vulnerabilities",
+                "{{vuln_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"mitigada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de vulnerabilidad', () => pm.response.to.have.jsonSchema({type:'object', required:['id','asset_id','description','probability','impact','risk_score','risk_band','status','created_at'], properties:{probability:{type:'integer',minimum:1,maximum:5}, impact:{type:'integer',minimum:1,maximum:5}, risk_score:{type:'integer',minimum:1,maximum:25}, risk_band:{enum:['bajo','medio','alto','critico']}, status:{enum:['abierta','mitigada']}}}));",
+                  "pm.test('Estado mitigada y puntaje sin cambios', () => { const v = pm.response.json(); pm.expect(v.status).to.eql('mitigada'); pm.expect(v.risk_score).to.eql(4); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "15 Activo sin riesgo tras mitigar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets",
+                "{{asset_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de detalle de activo', () => pm.response.to.have.jsonSchema({type:'object', required:['id','risk_band','vulnerabilities']}));",
+                  "pm.test('La vulnerabilidad mitigada ya no define el riesgo', () => pm.expect(pm.response.json().risk_band).to.be.null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16 Eliminar vulnerabilidad",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/vulnerabilities/{{vuln_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "vulnerabilities",
+                "{{vuln_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 204', () => pm.response.to.have.status(204));",
+                  "pm.test('Respuesta sin contenido', () => pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "17 Eliminar activo (baja lógica)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets",
+                "{{asset_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 204', () => pm.response.to.have.status(204));",
+                  "pm.test('Respuesta sin contenido', () => pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18 Activo eliminado ya no se encuentra (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets",
+                "{{asset_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Esquema de error', () => pm.response.to.have.jsonSchema({type:'object', required:['detail']}));",
+                  "pm.test('Mensaje de activo no encontrado', () => pm.expect(pm.response.json().detail).to.eql('Activo no encontrado'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Permisos y validaciones",
+      "item": [
+        {
+          "name": "19 Listar activos como Directivo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de lista de activos', () => pm.response.to.have.jsonSchema({type:'array', minItems:1, items:{type:'object', required:['id','name','type','department','criticality','status','owner','location','created_at','risk_band'], properties:{id:{type:'string'}, name:{type:'string'}, type:{enum:['servidor','aplicacion','base_datos','red','endpoint','sistema_web_publico']}, criticality:{enum:['baja','media','alta','critica']}, status:{enum:['activo','mantenimiento','dado_de_baja']}, location:{enum:['fisico','nube','on_prem']}, risk_band:{enum:[null,'bajo','medio','alto','critico']}}}}));",
+                  "const lista = pm.response.json();",
+                  "pm.test('No incluye el activo eliminado en el flujo', () => pm.expect(lista.map(a => a.id)).to.not.include(pm.environment.get('asset_id')));",
+                  "pm.environment.set('asset_existente_id', lista[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20 Analista no puede crear activos (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analista_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"No debe crearse\",\n  \"type\": \"servidor\",\n  \"department\": \"QA\",\n  \"criticality\": \"baja\",\n  \"status\": \"activo\",\n  \"owner\": \"QA\",\n  \"location\": \"nube\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 403', () => pm.response.to.have.status(403));",
+                  "pm.test('Esquema de error', () => pm.response.to.have.jsonSchema({type:'object', required:['detail']}));",
+                  "pm.test('Mensaje de no autorizado', () => pm.expect(pm.response.json().detail).to.eql('No autorizado para esta acción'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21 Directivo no puede guardar el cuestionario NIST (403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/nist/assessment",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "nist",
+                "assessment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"question_code\": \"ID-1\",\n    \"score\": 3\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 403', () => pm.response.to.have.status(403));",
+                  "pm.test('Esquema de error', () => pm.response.to.have.jsonSchema({type:'object', required:['detail']}));",
+                  "pm.test('Mensaje de no autorizado', () => pm.expect(pm.response.json().detail).to.eql('No autorizado para esta acción'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22 Probabilidad fuera de rango (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analista_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_existente_id}}/vulnerabilities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "assets",
+                "{{asset_existente_id}}",
+                "vulnerabilities"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Valor límite inválido\",\n  \"probability\": 6,\n  \"impact\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Esquema de error de validación', () => pm.response.to.have.jsonSchema({type:'object', required:['detail'], properties:{detail:{type:'array', minItems:1}}}));",
+                  "pm.test('El error señala el campo probability', () => pm.expect(pm.response.json().detail.some(e => e.loc.includes('probability'))).to.be.true);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Consultas de dashboard y NIST",
+      "item": [
+        {
+          "name": "23 Resumen de madurez NIST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/nist/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "nist",
+                "summary"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema del resumen NIST', () => pm.response.to.have.jsonSchema({type:'object', required:['global_maturity_percent','functions'], properties:{functions:{type:'array', minItems:5, maxItems:5, items:{type:'object', required:['function','maturity_percent','answered_count','total_questions']}}}}));",
+                  "const s = pm.response.json();",
+                  "pm.test('Cinco funciones con 5 preguntas cada una', () => s.functions.forEach(f => pm.expect(f.total_questions).to.eql(5)));",
+                  "pm.test('Madurez global entre 0 y 100', () => { if (s.global_maturity_percent !== null) { pm.expect(s.global_maturity_percent).to.be.within(0, 100); } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "24 Matriz de calor 5 x 5",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/heatmap",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "heatmap"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de la matriz', () => pm.response.to.have.jsonSchema({type:'object', required:['cells'], properties:{cells:{type:'array', items:{type:'object', required:['probability','impact','count']}}}}));",
+                  "pm.test('Contiene las 25 celdas', () => pm.expect(pm.response.json().cells).to.have.lengthOf(25));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "25 Catálogo de preguntas NIST",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{directivo_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/nist/questions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "nist",
+                "questions"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Esquema de preguntas', () => pm.response.to.have.jsonSchema({type:'array', items:{type:'object', required:['code','function','text']}}));",
+                  "pm.test('Contiene 25 preguntas', () => pm.expect(pm.response.json()).to.have.lengthOf(25));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
