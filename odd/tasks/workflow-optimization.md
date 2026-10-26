@@ -10,9 +10,9 @@ S3. Strategy for S2, per user's explicit choice (AskUserQuestion): "Velocidad m�
 
 ## Tasks
 
-- T1 [S1]: static-analysis job in pr-checks.yml (Sonar scan + gate, pull_request trigger) — route: inline — status: done — commit: (pending)
-- T2 [S3]: restructure main_muniguate-api.yml job graph for max parallelism (split unit-tests into backend/frontend jobs, flatten needs graph, deploy needs all 4) — route: inline — status: done — commit: (pending)
-- T3 [S2]: add pip caching (actions/setup-python cache: pip) across all Python install steps in both workflows to cut redundant install time from the now-parallel/duplicated installs — route: inline — status: done — commit: (pending)
+- T1 [S1]: static-analysis job in pr-checks.yml (Sonar scan + gate, pull_request trigger) — route: inline — status: done — commit: ccdf3a0
+- T2 [S3]: restructure main_muniguate-api.yml job graph for max parallelism (split unit-tests into backend/frontend jobs, flatten needs graph, deploy needs all 4) — route: inline — status: done — commit: ccdf3a0
+- T3 [S2]: add pip caching (actions/setup-python cache: pip) across all Python install steps in both workflows to cut redundant install time from the now-parallel/duplicated installs — route: inline — status: done — commit: ccdf3a0
 
 ## Log
 
