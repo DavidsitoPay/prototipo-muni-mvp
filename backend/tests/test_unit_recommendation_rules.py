@@ -35,13 +35,15 @@ def test_recommend_for_vulnerability_always_returns_text_for_critico(asset_type)
     # RF-16: toda vulnerabilidad critica debe tener recomendacion, sin
     # importar el tipo de activo.
     text = recommend_for_vulnerability(asset_type, RiskBand.critico)
-    assert isinstance(text, str) and len(text) > 0
+    assert isinstance(text, str)
+    assert len(text) > 0
 
 
 def test_recommend_for_vulnerability_always_returns_text_for_alto():
     for asset_type in AssetType:
         text = recommend_for_vulnerability(asset_type, RiskBand.alto)
-        assert isinstance(text, str) and len(text) > 0
+        assert isinstance(text, str)
+        assert len(text) > 0
 
 
 @pytest.mark.parametrize(
@@ -67,12 +69,14 @@ def test_recommend_for_nist_function_fuerte_has_no_recommendation():
 
 def test_recommend_for_nist_function_debil_returns_text():
     text = recommend_for_nist_function(NistFunction.protect, 2.0)
-    assert text is not None and len(text) > 0
+    assert text is not None
+    assert len(text) > 0
 
 
 def test_recommend_for_nist_function_moderado_returns_text():
     text = recommend_for_nist_function(NistFunction.recover, 3.0)
-    assert text is not None and len(text) > 0
+    assert text is not None
+    assert len(text) > 0
 
 
 def test_recommend_for_nist_function_covers_all_functions_for_debil():

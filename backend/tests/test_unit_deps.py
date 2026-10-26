@@ -43,8 +43,9 @@ async def test_get_current_user_rejects_missing_credentials():
 @pytest.mark.asyncio
 async def test_get_current_user_rejects_garbage_token():
     db = AsyncMock()
+    credentials = _bearer("no-es-un-jwt")
     with pytest.raises(HTTPException) as exc_info:
-        await get_current_user(credentials=_bearer("no-es-un-jwt"), db=db)
+        await get_current_user(credentials=credentials, db=db)
     assert exc_info.value.status_code == 401
 
 
@@ -59,8 +60,9 @@ async def test_get_current_user_rejects_token_with_non_uuid_subject():
 
     token = jwt.encode({"sub": "no-es-un-uuid", "role": "admin_ti"}, settings.jwt_secret, algorithm=settings.jwt_algorithm)
     db = AsyncMock()
+    credentials = _bearer(token)
     with pytest.raises(HTTPException) as exc_info:
-        await get_current_user(credentials=_bearer(token), db=db)
+        await get_current_user(credentials=credentials, db=db)
     assert exc_info.value.status_code == 401
 
 
@@ -69,8 +71,9 @@ async def test_get_current_user_rejects_user_not_found_or_inactive():
     token = create_access_token(uuid.uuid4(), "admin_ti")
     db = AsyncMock()
     db.scalar.return_value = None  # el usuario no existe o is_active=False
+    credentials = _bearer(token)
     with pytest.raises(HTTPException) as exc_info:
-        await get_current_user(credentials=_bearer(token), db=db)
+        await get_current_user(credentials=credentials, db=db)
     assert exc_info.value.status_code == 401
 
 
