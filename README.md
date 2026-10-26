@@ -6,7 +6,7 @@ Arquitectura de despliegue: **frontend en Vercel**, **backend en Azure Functions
 
 ## Requisitos
 
-- Python 3.12 + Node 20+
+- Python 3.12 + Node 22+
 - Una cuenta [Neon](https://neon.tech) (gratis) con un proyecto creado
 - Para desplegar: cuenta de Vercel + cuenta de Azure con [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 
@@ -61,7 +61,7 @@ Los despliegues a `main` son automáticos:
 
 ### Calidad de código
 
-SonarCloud analiza cada PR (`sonarcloud.io/project/issues?id=DavidsitoPay_prototipo-muni-mvp`). Los hallazgos de estilo puro en `backend/seed/` y componentes React (props read-only, `response_model` redundante) quedaron pendientes deliberadamente — bajo impacto para un MVP universitario.
+SonarCloud analiza el código en dos puntos: en cada Pull Request hacia `dev`/`qa`/`main` (gate bloqueante, job `static-analysis` de `pr-checks.yml`) y de nuevo tras cada push a `main`, antes del deploy (mismo gate dentro de `main_muniguate-api.yml`). El análisis usa cobertura real — `pytest-cov` en el backend y `@vitest/coverage-v8` en el frontend generan los reportes que Sonar ingiere vía `sonar.python.coverage.reportPaths` / `sonar.javascript.lcov.reportPaths` (`sonar-project.properties`). Dashboard: `sonarcloud.io/project/issues?id=DavidsitoPay_prototipo-muni-mvp`. Los hallazgos de estilo puro en `backend/seed/` y componentes React (props read-only, `response_model` redundante) quedaron pendientes deliberadamente — bajo impacto para un MVP universitario.
 
 ## Ramas y control de cambios
 
@@ -75,12 +75,13 @@ Tres ramas de larga vida, cada una representando un ambiente:
 
 Política de promoción: `feature/* → dev → qa → main`. Nunca se hace push directo a `qa` o `main`; siempre vía Pull Request. Si el pipeline de un PR hacia `qa` o `main` falla, GitHub bloquea el botón de merge — no es una convención, es una regla aplicada por la configuración del repositorio (Settings → Branches).
 
-El pipeline de verificación ([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml)) corre en cada Pull Request hacia `dev`, `qa` o `main`:
+El pipeline de verificación ([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml)) corre en cada Pull Request hacia `dev`, `qa` o `main`, con tres jobs:
 
-- `backend-tests`: instala `backend/requirements.txt` y corre `pytest` contra la branch `development` de Neon (nunca contra producción — requiere el secret `NEON_DATABASE_URL_DEV`, distinto del `NEON_DATABASE_URL` de producción que usa el workflow de deploy).
-- `frontend-build`: `npm ci && npm run build`, como smoke check de que el frontend compila.
+- `backend-tests`: instala `backend/requirements.txt` y corre `pytest --cov=app` contra la branch `development` de Neon (nunca contra producción — requiere el secret `NEON_DATABASE_URL_DEV`, distinto del `NEON_DATABASE_URL` de producción que usa el workflow de deploy). Sube el reporte de cobertura (`coverage.xml`) como artefacto.
+- `frontend-build`: `npm ci && npm run test:coverage && npm run build`. Sube el reporte de cobertura (`lcov.info`) como artefacto.
+- `static-analysis`: espera a que los dos anteriores terminen (necesita sus reportes de cobertura), los descarga y corre el scan + quality gate de SonarCloud. Si el gate queda en rojo, GitHub bloquea el botón de merge del PR — así el código con issues nuevos ya no puede llegar a `qa` o `main` sin pasar por acá.
 
-Este pipeline es independiente del de despliegue ([`main_muniguate-api.yml`](./.github/workflows/main_muniguate-api.yml)), que solo corre con push directo a `main`.
+El pipeline de despliegue ([`main_muniguate-api.yml`](./.github/workflows/main_muniguate-api.yml)) corre solo con push directo a `main` (o `workflow_dispatch` manual) y agrega una verificación de extremo a extremo antes de desplegar: `build` empaqueta el backend; `unit-tests-backend` y `unit-tests-frontend` corren en paralelo (mismo patrón de tests + cobertura de arriba); `static-analysis` repite el gate de Sonar sobre esas coberturas; `api-tests` levanta el backend localmente (`uvicorn`) contra la branch `development` de Neon y corre la colección Postman con Newman de punta a punta. El job `deploy` espera a que los cinco anteriores terminen en verde antes de migrar (`alembic upgrade head`) y desplegar la Function App.
 
 ## Roles y permisos
 
