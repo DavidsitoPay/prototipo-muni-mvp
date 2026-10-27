@@ -17,6 +17,7 @@ node_modules/
 dist/
 frontend/dist/
 frontend/coverage/
+*.tsbuildinfo
 
 # Azure Functions (local dev)
 backend/local.settings.json
