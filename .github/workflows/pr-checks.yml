@@ -5,6 +5,28 @@ on:
     branches: [dev, qa, main]
 
 jobs:
+  branch-flow-guard:
+    # Hace cumplir el flujo dev -> qa -> main. GitHub no deja restringir qué
+    # rama puede abrir un PR hacia cuál, asi que esto se hace como un check
+    # obligatorio: si alguien abre un PR que se salta un paso (p. ej. dev
+    # directo a main), este job falla y el merge queda bloqueado aunque el
+    # PR en si se pueda crear.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar que el PR respeta el flujo de ramas
+        run: |
+          base="${{ github.base_ref }}"
+          head="${{ github.head_ref }}"
+          echo "PR de '$head' hacia '$base'"
+          if [ "$base" = "main" ] && [ "$head" != "qa" ]; then
+            echo "::error::Los PR hacia main solo pueden venir de qa (este viene de '$head')."
+            exit 1
+          fi
+          if [ "$base" = "qa" ] && [ "$head" != "dev" ]; then
+            echo "::error::Los PR hacia qa solo pueden venir de dev (este viene de '$head')."
+            exit 1
+          fi
+
   static-analysis:
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-build]
