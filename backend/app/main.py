@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import assets, auth, business_metrics, dashboard, nist, recommendations, reports, vulnerabilities
 
-app = FastAPI(title="SGCM API", version="0.1.0")
+app = FastAPI(title="SGCM API", version="0.1.1")
 
 app.add_middleware(
     CORSMiddleware,
