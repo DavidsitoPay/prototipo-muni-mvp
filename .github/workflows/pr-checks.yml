@@ -107,3 +107,83 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  api-tests:
+    runs-on: ubuntu-latest
+    # Depende de backend-tests porque ambos corren contra la MISMA base de
+    # Neon dev: en paralelo, el POST /api/assets de test_assets.py puede caer
+    # entre los pasos 07 y 09 de Postman (miden el total de activos antes/
+    # despues de crear uno) y hacer que el conteo salte +2 en vez de +1.
+    needs: [backend-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.lock.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --only-binary :all: pip==26.2.2
+          pip install --only-binary :all: --require-hashes -r requirements.lock.txt
+
+      - name: Sembrar datos de demo (idempotente)
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL_DEV }}
+          SEED_ADMIN_TI_PASSWORD: ${{ secrets.SEED_ADMIN_TI_PASSWORD }}
+          SEED_ANALISTA_RIESGO_PASSWORD: ${{ secrets.SEED_ANALISTA_RIESGO_PASSWORD }}
+          SEED_DIRECTIVO_PASSWORD: ${{ secrets.SEED_DIRECTIVO_PASSWORD }}
+        run: python -m seed.seed_data
+
+      - name: Levantar el backend (uvicorn) contra la base de desarrollo
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL_DEV }}
+        run: |
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+          echo $! > uvicorn.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/api/health > /dev/null; then
+              echo "Backend listo"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "El backend no respondio a tiempo"
+          cat uvicorn.log
+          exit 1
+
+      - name: Setup Node 22 (para Newman)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Ejecutar pruebas de API (Newman)
+        env:
+          ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_TI_PASSWORD }}
+          ANALISTA_PASSWORD: ${{ secrets.SEED_ANALISTA_RIESGO_PASSWORD }}
+          DIRECTIVO_PASSWORD: ${{ secrets.SEED_DIRECTIVO_PASSWORD }}
+        run: |
+          npx --yes newman run api-tests/muniguate-sgcm.postman_collection.json \
+            -e api-tests/muniguate-ci.postman_environment.json \
+            --env-var admin_password="$ADMIN_PASSWORD" \
+            --env-var analista_password="$ANALISTA_PASSWORD" \
+            --env-var directivo_password="$DIRECTIVO_PASSWORD" \
+            --bail
+
+      - name: Mostrar el log del backend si algo falló
+        if: failure()
+        working-directory: backend
+        run: cat uvicorn.log
+
+      - name: Detener el backend
+        if: always()
+        working-directory: backend
+        run: |
+          if [ -f uvicorn.pid ]; then kill "$(cat uvicorn.pid)" || true; fi
