@@ -163,6 +163,12 @@ jobs:
 
   api-tests:
     runs-on: ubuntu-latest
+    # Depende de unit-tests-backend porque ambos corren contra la MISMA base
+    # de Neon dev: si corrieran en paralelo, el POST /api/assets de
+    # test_assets.py puede caer justo entre los pasos 07 y 09 de Postman
+    # (que miden el total de activos antes/despues de crear uno) y hacer
+    # que el conteo salte +2 en vez de +1 (issue reproducido en CI).
+    needs: [unit-tests-backend]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
