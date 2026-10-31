@@ -140,6 +140,18 @@ describe("AuthProvider - login", () => {
     expect(JSON.parse(localStorage.getItem("sgcm_user")!)).toEqual(VALID_USER);
   });
 
+  it("accepts the seeded display names, which contain parentheses", async () => {
+    const seeded = { ...VALID_USER, username: "admin.ti", display_name: "Ana TI (Administradora TI)" };
+    apiLogin.mockResolvedValue({ access_token: "tok", token_type: "bearer", user: seeded });
+
+    renderHarness();
+    await waitForCheckDone();
+    await user.click(screen.getByText("login"));
+
+    await waitFor(() => expect(screen.getByTestId("authed")).toHaveTextContent("true"));
+    expect(JSON.parse(localStorage.getItem("sgcm_user")!)).toEqual(seeded);
+  });
+
   it("rejects a login response with a malformed user shape and stores nothing", async () => {
     apiLogin.mockResolvedValue({ access_token: "tok", token_type: "bearer", user: { id: "u1" } });
 
