@@ -7,7 +7,7 @@ const VALID_ROLES: Set<UserRole> = new Set(["admin_ti", "analista_riesgo", "dire
 // (username, display_name): si el valor no calza, se rechaza en vez de
 // limpiarlo, para no guardar silenciosamente una versión mutilada de lo
 // que mandó el backend.
-const SAFE_FREE_TEXT = /^[\p{L}\p{N}\s.@_-]{1,200}$/u;
+const SAFE_FREE_TEXT = /^[\p{L}\p{N}\s.@_()-]{1,200}$/u;
 
 function isValidUser(value: unknown): value is User {
   if (typeof value !== "object" || value === null) return false;
